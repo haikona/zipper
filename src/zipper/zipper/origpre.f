@@ -35,7 +35,7 @@ c  As written, this program is limited to 10000 (original) vertices
       dimension x(100002),y(100002),jindex(10002)
       character*55 filenm
    99 format(2g25.15)
-      open(1,file='poly.pre',status='old')
+      open(1,file='./output/poly.pre',status='old')
       do 1 j=1,100001
           read(1,*,end=50)x(j),y(j)
     1 continue
@@ -43,7 +43,7 @@ c  As written, this program is limited to 10000 (original) vertices
       write(*,*)' recompile.'
       stop
    50 continue 
-      open(2,file='index.dat',status='old')
+      open(2,file='./output/index.dat',status='old')
       do 2 k=1,10001
          read(2,*,end=51)jindex(k)
     2 continue
@@ -52,7 +52,7 @@ c  As written, this program is limited to 10000 (original) vertices
       stop
    51 continue 
       n=k-1
-      open(3,file='orig.pre',status='unknown')
+      open(3,file='./output/orig.pre',status='unknown')
       do 3 m=1,n
          write(3,99)x(jindex(m)),y(jindex(m))
     3 continue

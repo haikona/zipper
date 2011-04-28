@@ -6,6 +6,8 @@ syntax: glob
 *.log
 *.aux
 *.pdf
+*.dat
+*.pre
 
 .DS_Store
 src/zipper/zipper/origpre
@@ -19,15 +21,19 @@ src/zipper/zipper/fluid
 src/zipper/zipper/forward
 src/zipper/zipper/geodes
 src/zipper/zipper/imagegr
-src/zipper/zipper/index.dat
-src/zipper/zipper/init.dat
+src/zipper/output/index.dat
+src/zipper/output/init.dat
 src/zipper/zipper/inverse
-src/zipper/zipper/logfile
-src/zipper/zipper/poly.dat
-src/zipper/zipper/poly.par
-src/zipper/zipper/poly.pre
+src/zipper/output/logfile
+src/zipper/output/poly.dat
+src/zipper/output/poly.par
+src/zipper/output/poly.pre
+src/zipper/output/grid.dat
+src/zipper/output/grid.pre
+src/zipper/output/orig.pre
 src/zipper/zipper/polygon
 src/zipper/zipper/polyline
 src/zipper/zipper/stagpt
 src/zipper/zipper/whitney
 src/zipper/zipper/zipper
+src/zipper/xcm/xcm

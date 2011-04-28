@@ -46,7 +46,7 @@ c              occurances of 10001 with a larger number.
      1zto1,angler,zrot2,mm,n
    80 format(a55)
 c file with mapping parameters is poly.par
-      open(4,file='poly.par',status='unknown')
+      open(4,file='./output/poly.par',status='unknown')
       read(4,*)z1,z2,z3,zrot1,zto0,zto1,angler,zrot2
       do 981 j=1,10000
       jj=j*2+2

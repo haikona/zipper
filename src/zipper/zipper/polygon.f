@@ -185,7 +185,7 @@ C count signed crossings of [z0,f(zint)] where f is an lft.
       y=dimag(zint)
       write(2,99)x,y
       write(*,*)' index.dat=file with index for original data pts.'
-      open(3,file='index.dat',status='unknown')
+      open(3,file='./output/index.dat',status='unknown')
       do 19 j=1,norg
          write(3,98)jindex(j)
    19 continue

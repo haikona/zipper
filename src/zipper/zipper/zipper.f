@@ -66,11 +66,11 @@ c              occurances of 120001 and 120000 with larger numbers.
       common z(120001),a(120001),b(120001),c(120001),z1,z2,z3,zrot1,
      1zto0,zto1,angler,zrot2,n
 c  file containing data is called poly.dat
-      open(1,file='poly.dat',status='old')
+      open(1,file='./output/poly.dat',status='old')
 c  file containing mapping parameters is called poly.par
-      open(4,file='poly.par',status='unknown')
+      open(4,file='./output/poly.par',status='unknown')
 c  file containing preimages of data on the unit circle is poly.pre
-      open(3,file='poly.pre',status='unknown')
+      open(3,file='./output/poly.pre',status='unknown')
       do 55 j=1,120000
           read(1,*,end=56)x,y
           z(j)=dcmplx(x,y)
