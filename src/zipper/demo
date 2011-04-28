@@ -1,0 +1,361 @@
+#!/bin/csh -f
+#  demo 
+#
+#  files created:
+#
+#init.dat   original data (created by the user)
+#poly.dat   original data with extra points along polygonal boundary
+#poly.pre   preimage on the unit circle of poly.dat
+#orig.pre   preimage of init.dat
+#poly.par   parameters for the conformal map
+#poly.int   poly.pre plus intermediate points on unit circle
+#poly.img   image of poly.int by the conformal map
+#poly.grid  Carleson grid on disk
+#poly.gridi image of the Carleson grid in the region.
+#cgrid.dat  used to make Carleson grid
+#cgrid.img  used to make image of Carleson grid
+#grid.dat   grid of points in the region
+#grid.pre   preimage in the disk of grid.dat
+#sent.dsk   a curve in the disk
+#sent.reg   a curve in the region
+#path.pts   data points for path (created by the user)
+#path.dat   path with extra points, after clipping
+#path.pre   preimage of path.dat in the disk.
+#error.est  estimate of supremum norm distance between two curves:
+#             the polygon with vertices init.dat and the computed
+#             image of the unit circle by the conformal map.
+#
+#
+echo '*******************************************************'
+echo ' This is a demonstration of some of the capabilities'
+echo ' of the conformal mapping programs called ZIPPER.'
+echo ' After trying it a few times, read the file demo1 and'
+echo ' look at the input to the various fortran programs.'
+echo ' You should then be able to design a version to suit'
+echo ' your needs, with greater accuracy and speed.'
+echo '*******************************************************'
+echo '  '
+echo ' Press <return> to continue.'
+set continue = $<
+echo '  '
+echo '  '
+echo ' After every picture, select Quit (with mb 1) to continue'
+echo '  '
+echo ' Press <return> to continue.'
+set continue = $<
+echo '  '
+#  You can add an ampersand after any command below
+#   to keep the picture on the screen.  
+# WARNING: If you do so, your
+#   speedy machine might continue to the next command before
+#   finishing  writing the output of a previous command
+#   causing errors.
+echo '  '
+echo '   '
+echo ' First you will create a Jordan curve:'
+#echo ' Select Edit Options, then Lines & Boxed Points'
+echo ' Select Create Path with mb1, then'
+echo ' Click with mb1 on boundary points (do not close up curve)'
+echo ' Then click with mb3 on an interior point.'
+echo ' You will see a line connecting the last data point'
+echo ' on the curve to the interior point, but it is not'
+echo ' part of the curve.'
+echo ' Select Write Output with mb1 (then OK), then Quit'
+echo '   '
+echo ' This version requires the curve to be a Jordan curve.'
+echo ' If the interior point is "outside" the curve, the program'
+echo ' will compute the map to the region "outside" the curve'
+echo ' regarding infinity as a point in this region.'
+echo '   '
+echo '*******************************************************'
+echo '  Remember to click on Quit to continue'
+echo '*******************************************************'
+
+./xcm/xcm -grid -gridcolor orange -subgridcolor yellow -o init.dat $1 $2
+
+# added $1 and $2 above so can use own file with demo -e file.
+# still need to "write output" to move it to init.dat.
+
+echo '  '
+echo '  '
+echo ' If you have an existing file consisting of a list of x,y '
+echo ' coordinates for the boundary points, followed by an interior'
+echo ' point, you can use it instead of creating the data with the mouse.'
+echo ' To do so, copy the file to init.dat, restart the demo,'
+echo ' then click on Quit (without creating a path) when the first'
+echo ' window comes up.'
+
+echo '  '
+echo '  '
+echo ' Press <return> to continue.'
+set continue = $<
+echo '  '
+echo '  '
+echo ' Next we will put at least 200 points on the boundary of the'
+echo ' polygon, with at least 5 points per edge.'
+# If your data is already  in the proper form for zipper, 
+# (boundary data consists of an even number of points in counterclockwise
+# order, and any bends must occur at odd numbered points - but not the
+# at the first point-and at least 5 
+# points between bends, and the boundary data is followed by the point to 
+#  be mapped to 0) 
+#  the program should then run 25 times faster without using polygon below.
+#  This is particularly useful if your boundary is smooth, or has
+#  only a few bends. It is more accurate if the spacing of points
+#  is roughly like arc length.
+# see the header of zipper.f for more detail on the boundary data
+# requirements.
+
+./zipper/polygon < ./input/polygon.inp >logfile
+
+echo '  '
+echo '  Here is the data, followed by the interior point'
+echo '  Change Static Options to Boxed points to see data'
+echo '*******************************************************'
+echo '  Remember to click on Quit to continue'
+echo '*******************************************************'
+./xcm/xcm -use 2 red blue poly.dat init.dat
+
+echo '  '
+echo '  '
+echo ' Now we will compute the conformal map to the disk'
+
+./zipper/zipper
+
+# If zipper crashes, or if the distance from the data (poly.dat)
+# to the computed curve (poly.img) is too great, increase
+# the number of points in poly.dat by increasing 200 in polygon.inp.
+
+#next we list the preimages of the original data points.
+./zipper/origpre
+
+echo '  '
+echo '  '
+echo ' Here are the preimages of the original data on the unit circle'
+echo ' along with the preimages of the additional boundary points.'
+echo ' Change Static Options to boxed Points to see points'
+echo ' Notice the compression/expansion of the points.'
+
+echo '*******************************************************'
+echo '  Remember to click on Quit to continue'
+echo '*******************************************************'
+./xcm/xcm -use 2 red blue poly.pre orig.pre
+
+echo '  '
+echo '  '
+if (! -e cgrid.dat ) then
+   echo ' Now we will generate a Carleson grid on the disk'
+
+   ./zipper/cgrids<./input/cgrids.inp >>logfile
+   ./zipper/corders<./input/corders.inp1 >>logfile
+   echo '  '
+else 
+   echo ' Here is a Carleson grid on the disk'
+endif
+echo '*******************************************************'
+echo '  Remember to click on Quit to continue'
+echo '*******************************************************'
+./xcm/xcm -use 2 blue red ./poly.grid ./input/circle1
+
+echo '  '
+echo ' Now we will compute the image of the unit circle at'
+echo ' 4 times the number of data points (at the preimages of the'
+echo ' vertices on the circle and at three points between each'
+echo ' preimage of a vertex)'
+echo ' Then we will compute the image of the Carleson grid'
+echo ' (At least 2000 points)'
+
+./zipper/forward < ./input/forward.inp1 >>logfile
+
+echo '  '
+echo '*******************************************************'
+echo ' Estimate of the relative (supremum norm) error:'
+cat error.est
+echo ' This error can be decreased by increasing 200 in polygon.inp'
+echo '*******************************************************'
+echo '  '
+# Here we reorder the points on the grid for plotting
+./zipper/corders<./input/corders.inp2 >>logfile
+echo ' Press <return> to continue.'
+set continue = $<
+echo '  '
+
+
+echo ' Here is the image of the Carleson grid(blue), the image of the unit'
+echo ' circle(red), and the original data(black), connected by straight lines'
+echo '   '
+echo '    Slide the image around by dragging mb2; Center the image at the'
+echo '    mouse cursor by clicking mb1; Zoom by dragging mb3 up and down.'
+echo '    Try zooming in on the boundary by clicking mb1 on the boundary,'
+echo '    then dragging mb3 up until you can see the difference between the'
+echo '    curve formed by straight line segments between the data points'
+echo '    (black) and the image of the circle(red). It may help to use'
+echo '    Lines & Boxed points under Static Options.  '
+echo '    Try also clicking on Show Grid.'
+echo '    By counting boxes you can estimate the harmonic measure of'
+echo '    an interval on the boundary of the region.'
+echo '  '
+echo '  '
+
+echo '*******************************************************'
+./xcm/xcm -use 3 blue black red poly.gridi poly.dat poly.img
+
+
+echo '  '
+echo ' For the next example, we first select a (square) grid of'
+echo ' points inside the region. '
+
+./zipper/imagegr<./input/imagegr.inp >>logfile
+
+echo '   '
+echo ' To see the points, Select Static Options, then Points'
+echo '   '
+
+echo '*******************************************************'
+./xcm/xcm -use 2 red blue poly.dat grid.dat
+
+echo '  '
+echo ' Now we will find the (pre)images of the grid points in the disk'
+
+./zipper/inverse<./input/inverse.inp1 >>logfile
+
+echo '    '
+echo '   ' 
+echo ' To see the points, Select Static Options, then Points'
+echo ' You might need to zoom to distinquish some of the points.'
+echo ' Note that the image is locally square.'
+echo '    '
+echo '   ' 
+
+echo '*******************************************************'
+./xcm/xcm -use 2 red blue ./input/circle1 grid.pre
+
+echo '  '
+echo '  '
+echo '*******************************************************'
+echo ' This numerical routine is useful in theoretical experimentation'
+echo ' because not only does it give an approximation to a desired'
+echo ' conformal map, but the map it computes is conformal itself,'
+echo ' even very near the boundary.'
+echo ' To see this, first try to read the next sentence'
+echo ' by clicking with mb1 on the right side of the sentence'
+echo ' one or more times then holding down and sliding'
+echo ' mb3 up to zoom. Repeat this operation until you can read the' 
+echo ' whole sentence.'
+echo '    '
+echo '*******************************************************'
+cp ./input/sent.dsk sent.dsk
+./xcm/xcm -use 2 red blue sent.dsk ./input/circle1
+echo '  '
+echo ' Now we will map the sentence to the region. Notice that the'
+echo ' image of the sentence can still be read, since the map is'
+echo ' conformal. Look at the numbers on the axes to see how close'
+echo ' the points really are.'
+echo '   '
+echo '*******************************************************'
+./zipper/forward< ./input/forward.inp5 >>logfile
+./xcm/xcm -use 2 red blue sent.reg poly.img
+echo '  '
+echo ' In this example you will create a curve in the region,'
+echo ' then map it to the disk.'
+echo ' As before click on Create Path, then'
+echo '  Click mb1 to enter points in the region.'
+echo '  Finish by clicking mb3 on the last point.'
+echo '  Try combining the above with shifting and zooming'
+echo '  to draw a curve that comes close the boundary.'
+echo '  Use Ctrl-mb1 to shift and Ctrl-mb3 to zoom.'
+echo '  '  
+echo '  Select Write Ouput, OK, quit.'
+echo '*******************************************************'
+./xcm/xcm -use 1 red poly.img -o path.pts
+echo '  '
+echo ' Here is your path with some additional points added along the'
+echo ' polygon (Use points under Static options'
+echo ' for easier viewing)'
+echo ' Points outside the region have been clipped out.'
+
+./zipper/polyline<./input/polyline.inp >>logfile
+
+echo '   '
+
+echo '*******************************************************'
+./xcm/xcm -use 2 red blue path.dat poly.img
+
+echo '   '
+echo ' Now we will find the corresponding points in the disk'
+
+./zipper/inverse <./input/inverse.inp2 >>logfile
+
+echo '   '
+echo ' Lines & Boxed Points under Static Options'
+echo ' might help to see points; you might also need to'
+echo ' zoom to see points near the circle.'
+
+echo '*******************************************************'
+./xcm/xcm -use 2 red black poly.int path.pre
+echo '   '
+echo '   '
+echo ' Another way to visualize the compression/expansion of the'
+echo ' conformal map is to compute the image of equally spaced points'
+echo ' on the unit circle.'
+echo '    '
+echo ' Type a positive number, then hit Enter:'
+./zipper/circle 
+echo '   '
+echo ' Select Boxed points under Edit options to see the image points.'
+echo ' These points may not be precisely on the red boundary,'
+echo ' because the image of the circle is not precisely the boundary'
+echo ' of the region. You can see how close they are by zooming in a'
+echo ' few times (see error estimate above).'
+echo ' If you select Lines and Boxed points under Static options,'
+echo ' you will see the image of 0 and the original data.'
+./zipper/forward < ./input/forward.inp6 >>logfile
+./xcm/xcm -use 1 red poly.dat -e fftpts.img -o fftpts.img
+echo '   '
+echo '*******************************************************'
+echo '   '
+echo '   '
+echo ' If you want to view again any of the preceeding pictures,'
+echo ' or look at the data files directly, read the file demo1.'
+echo '   '
+echo ' You can also edit a file, moving, adding or deleting points'
+echo ' and lines. For example: To alter your original data, type'
+echo ' xcm/xcm -e init.dat -o init.dat'
+echo '  '
+echo ' To move one of the boundary points to a new location,'
+echo ' click mb1 on Move Point, then click and hold mb1 on a data'
+echo ' point. Drag the point to a new location.'
+echo '  '
+echo ' To delete a data point, click on Delete Point, then click'
+echo ' on the data point you wish to delete.' 
+echo '  '
+echo ' To add a data point between two existing data points,'
+echo ' click on Break Line, then click on the segment between the'
+echo ' data points.'
+echo '   '
+echo ' Save the new data by clicking on write output, then click'
+echo ' on OK then quit.'
+echo '  '
+echo ' Now restart the demo1, but do not create a path in the first'
+echo ' window, but simply click on Quit.'
+echo '  '
+echo ' Press <return> to continue.'
+set continue = $<
+echo '  '
+echo '  '
+echo '   The accuracy of the numerical routine can be measured by'
+echo '   looking at  the difference between the curves poly.dat and'
+echo '   poly.img.  To increase the accuracy, change the 200 in'
+echo '   polygon.inp to a higher number.  It will increase the running'
+echo '   time. To evaluate the map at more points on the unit'
+echo '   circle, increase the 4 in forward.inp1.' 
+echo '   '
+echo '   '
+echo ' Please send bug reports, comments and suggestions to'
+echo ' marshall@math.washington.edu'
+echo '  '
+echo '  '
+echo ' I would appreciate hearing what you used this program for.'
+echo '*******************************************************'
+echo 'Press <return> after reading this message.'
+set getexit = $<

@@ -1,0 +1,39 @@
+= conformal =
+
+== Description ==
+
+conformal is a Sage wrapper of Zipper, a collection of Fortran 
+executables developed by Donald Marshall of the Department of Mathematics 
+at the University of Washington. This project combines Zipper along with 
+a Python/Sage interface for ease of use.
+
+This SPKG is hosted at http://code.google.com/p/conformal/
+
+== License ==
+
+GPL v.3
+
+== SPKG Maintainers ==
+
+  * Simon Spicer
+  * Chris Swierczewski
+
+== Upstream Contact ==
+
+See http://code.google.com/p/conformal/ for more information. This SPKG is
+maintained by Simon Spicer and Chris Swierczewski. The core Fortran-based 
+code was developed
+
+== Dependencies ==
+
+  * gfortran
+  * pexpect
+
+== Special Update/Build Instructions ==
+
+  * make
+  * make install
+
+== Changelog ==
+
+Provide a changelog of the spkg here.

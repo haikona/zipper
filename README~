@@ -1,0 +1,12 @@
+= conformal =
+
+To turn this into an SPKG, ust create a bzipped tarball of this directory.
+That is, from thsi directory do the following:
+
+  1) cd ..
+  
+  2) tar -cvjf conformal.spkg ./conformal
+
+  3) sage -pkg conformal.spkg
+
+  4) Invoke the Fifth.

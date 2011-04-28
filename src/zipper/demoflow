@@ -1,0 +1,80 @@
+#  files created:
+#
+#init.dat    original data (created by the user)
+#poly.dat    original data with extra points along polygonal boundary
+#poly.pre    preimage on the unit circle of poly.dat
+#poly.par    parameters for the conformal map
+#poly.int    poly.pre plus intermediate points on unit circle
+#poly.img    image of poly.int by the conformal map
+#circflow.dsk flow lines around unit disk  
+#circflow     preimage of flow lines in disk.
+#circflow.img flow lines in the region (image of circflow.dsk)
+#infty.inp   Two large numbers used to compute deriv. at infinity
+#infty.pre   preimage of infty.inp in the disk
+#stagpt.dat  stagnation point (plus one irrelevant point)
+#stagpt.pre  preimage on circle of stagnation point
+#fluid.inp2  has no. of points per flow line, no. flow lines,
+#             and 0 for evenly spaced, 1 for geometrically spaced
+#             flow lines.
+#
+#
+echo '  '
+echo '  '
+echo '*******************************************************'
+echo ' This is a demonstration of some of the capabilities'
+echo ' of the conformal mapping programs called ZIPPER.'
+echo '*******************************************************'
+echo ' Program to compute flow with circulation'
+echo ' past an object --incompressible, inviscid, fluid.'
+echo '  '
+echo '  '
+echo ' Click on Create path, click on boundary points with mb1.'
+echo '  Do not close up the curve, but end by clicking with mb3'
+echo '  on a point in the exterior region (best if the closest point'
+echo '  on the boundary is not near the stagnation point).'
+echo '  Click on Write output, OK then quit.'
+./xcm/xcm -grid -gridcolor orange -subgridcolor yellow -o init.dat $1 $2
+./zipper/polygon<./input/polygon.inp>/dev/null
+./zipper/zipper>/dev/null
+echo '  '
+echo '  '
+echo ' Set Grab Option to Static points, Static options to lines and'
+echo ' Boxed points, then click on Create Path'
+echo ' Then click with mb1 on a stagnation point (trailing edge)'
+echo ' then click with mb3 on any point (it will be ignored)'
+echo ' Then write output, OKay then quit.'
+echo '  '
+echo '  '
+./xcm/xcm init.dat -o stagpt.dat
+#To change the size of the view window, so that
+#the flowlines extend farther away from the boundary,
+#change xsize and ysize in fluid.f to larger numbers.
+#
+#fluid.inp2 controls the number of points per line
+#and the number of flow lines.
+#infty.inp has two large numbers for finding the derivative 
+#at infinity.
+./zipper/stagpt>/dev/null
+./zipper/inverse<./input/inverse.inp4>/dev/null
+./zipper/fluid
+./zipper/forward<./input/forward.inp4>/dev/null
+./zipper/blankl>/dev/null
+echo '  '
+echo ' Here are the flow lines around the region.'
+./xcm/xcm -use 2 red blue poly.img cflow.lines
+echo '  '
+echo ' Here are the corresponding flow lines around the disk.'
+echo ' circulation/speed = 4\pi times |Im z_s| where z_s is the '
+echo ' preimage of the stagnation point on the unit circle.'
+echo 
+./xcm/xcm -use 2 red blue ./input/circle1 circflow.dsk
+echo '  '
+echo '  '
+echo ' Please send bug reports, comments and suggestions to'
+echo ' marshall@math.washington.edu'
+echo '  '
+echo '  '
+echo ' I would appreciate hearing what you used this program for.'
+echo '*******************************************************'
+echo 'Press <return> after reading this message.'
+set getexit = $<

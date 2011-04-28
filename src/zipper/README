@@ -1,0 +1,29 @@
+                  ZIPPER
+
+ZIPPER finds a numerical approximation of the conformal map 
+(and its inverse) of the unit disk onto any Jordan region  
+(bounded or unbounded).  This version requires the X11 library on your
+workstation and a fortran and C compiler.  It has been tested
+on DEC, HP and SUN equipment.  
+
+To run the demonstration programs:
+
+read the file called README_f in the directory zipper and follow the
+instructions for compiling the conformal mapping routines.
+If you are having difficulties, it might help to look at logfile
+and each command in demo.
+
+read the file called README_C in the directory xcm and follow the 
+instructions for compiling the graphics program xcm.
+
+return to the parent directory (the current directory) and type
+
+demo
+
+After you are familiar with the use of demo, try
+
+   demoresist (electric potential)
+
+   demoflow   (fluid flow)
+
+   demowhitney (whitney decomposition and geodesics)

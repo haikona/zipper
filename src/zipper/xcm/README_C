@@ -1,0 +1,70 @@
+xcm should compile and run on DECstations (Ultrix), DEC Alpha workstations
+(OSF), and HP 700 series workstations that have the HP C compiler added (HPUX).
+It has also been compiled on a SUN workstation. You may need to make changes 
+in complex.c and xplane.c for SUN as described below.
+
+   There is a freeware version of cc called gcc (gnu cc) that will 
+   compile this code.
+
+To create xcm, copy GCC_makefile or DEC_makefile, or HP_makefile, 
+or SUN_makefile to makefile
+then type 'make'. 
+
+
+Compiling on SUN:
+----------------------------------------------------------------------------
+   SUN's may have the system files float.h and limits.h and X11 libraries
+   in directories not in the usual search path. The CFLAG -I adds the directory
+   to the search path (the current version in SUN_makefile
+   is the one that works at Hawaii).
+   Also the C compile command is acc. If you can't find the files
+   float.h and limits.h on your system, enclosed is a file called
+   newfloat.h. To use it, change the line in complex.c
+   #include <float.h>
+   to
+   #include "newfloat.h"
+   
+   Do the same in the file xplane.c
+   and remove the line
+   
+   #include "limits.h"
+   
+   On some Sun's need to change all occurances of
+   memmove to memcpy in textbox.c
+   
+
+_________________________________________________________________________
+Compiling on Dec 3000/400 with Dec OSF 1 v 3.0:
+   Use ALPHA_makefile since the default optimization doesn't work correctly
+_________________________________________________________________________
+
+*****************************************************************
+You can alter the colors used in xcm. As an example, here are the
+lines that I put in my .Xdefaults file:
+
+Xcm*gridColor : orange
+Xcm*subgridColor : yellow
+Xcm*plane.foreground : blue
+Xcm*plane.background : white
+Xcm*background : white
+Xcm*foreground : brown
+
+Addendum 4-95: these are now the defaults. (see the file defaults.h)
+
+
+As an alternative, you can use command line options (best done
+via an alias):
+
+xcm -gridcolor orange -subgridcolor yellow -planefg blue -planebg white -bg white -fg brown
+
+
+You can edit the filenames in the text-boxes that appear when you select
+'write' or 'print' by using the arrow keys and the delete key. 
+
+
+BUGS:
+----------------------------------------------------------------------------
+
+Not all command line options in options.h work at the moment.
+
+Please send all bug reports to marshall@math.washington.edu. Thanks!

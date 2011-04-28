@@ -1,0 +1,27 @@
+EXEC= xcm
+CC=gcc
+CFLAGS= -O 
+RM=rm -f
+LIBS= -lm -lX11
+OBJECTS= complex.o button.o basic.o file.o textbox.o dialog.o menu.o xplane.o\
+primary.o path.o ps.o main.o
+$(EXEC): $(OBJECTS)
+	$(CC) -o $(EXEC) $(OBJECTS) $(LIBS) $(CFLAGS)
+
+complex.o: complex.h
+button.o: globals.h basic.h button.h
+basic.o: globals.h basic.h
+file.o: globals.h file.h
+textbox.o: globals.h basic.h textbox.h
+dialog.o: globals.h button.h textbox.h dialog.h
+menu.o: globals.h menu.h
+path.o: globals.h path.h xplane.h primary.h
+xplane.o: globals.h basic.h xplane.h
+primary.o: globals.h basic.h button.h xplane.h primary.h
+ps.o : globals.h ps.h xplane.h primary.h path.h
+main.o: globals.h button.h basic.h file.h textbox.h dialog.h xplane.h\
+primary.h defaults.h options.h path.h
+
+clean::
+	$(RM) $(EXEC) *.CKP *.ln *.BAK *.bak *.o core errs ,* *~ *.a .emacs_* tags TAGS make.log MakeOut
+

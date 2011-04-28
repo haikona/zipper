@@ -1,0 +1,12 @@
+= conformal =
+
+{{{conformal}}} is a Sage wrapper of Zipper, a collection of Fortran 
+executables developed by Donald Marshall of the Department of Mathematics 
+at the University of Washington. This project combines Zipper along with 
+a Python/Sage interface for ease of use.
+
+= Authors =
+
+  * Donald Marshall
+  * Simon Spicer
+  * Chris Swierczewski

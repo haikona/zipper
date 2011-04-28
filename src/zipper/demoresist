@@ -1,0 +1,125 @@
+#!/bin/csh -f
+#  demo 
+#
+#  files created:
+#
+#init.dat   original data (created by the user)
+#poly.dat   original data with extra points along polygonal boundary
+#poly.pre   preimage on the unit circle of poly.dat
+#poly.par   parameters for the conformal map
+#poly.int   poly.pre plus intermediate points on unit circle
+#poly.img   image of poly.int by the conformal map
+#ends.dat   4 points on boundary determining 2 arcs (created by user)
+#arcs1.dat  boundary points on 2 nonadjacent arcs
+#arcs2.dat  boundary points on 2 nonadjacent arcs
+#rect.ends  vertices of conformally equivalent rectangle
+#rect.gridp grid points on conformally equivalent rectangle
+#extlen     extremal length or resistance of above quadrilateral
+#gridi.img  image of rectangular grid in region
+#error.est  error estimate for the conformal map (see demo1)
+#
+#
+echo '*******************************************************'
+echo ' This is a demonstration of some of the capabilities'
+echo ' of the conformal mapping programs called ZIPPER.'
+echo '*******************************************************'
+echo '  '
+echo ' Electric Potential'
+echo '  '
+echo ' In this example, we will compute the electric potential'
+echo ' when two non-adjacent arcs on the boundary are insulated'
+echo ' and a constant voltage drop is created between the remaining'
+echo ' two arcs. We will display the equi-potential lines, the field'
+echo ' lines, and compute the resistance. The mathematical model for'
+echo ' resistance is extremal distance: the gradient of the potential'
+echo ' function is the extremal metric, and the field lines are the'
+echo ' shortest curves in the extremal metric.'
+echo '   '
+echo '   '
+echo ' First you will create a Jordan curve:'
+#echo ' Select Edit Options, then Lines & Boxed Points'
+echo ' Select Create Path with mb1, then'
+echo ' Click with mb1 on boundary points (do not close up curve)'
+echo ' Then click with mb3 on an interior point.'
+echo ' You will see a line connecting the last data point'
+echo ' on the curve to the interior point, but it is not'
+echo ' part of the curve.'
+echo ' Select Write Output with mb1 (then OK), then Quit'
+echo '   '
+echo '   '
+echo ' Press <return> or <enter>.'
+set continue = $<
+echo '   '
+echo '   '
+echo '   '
+echo '   '
+echo '*******************************************************'
+echo '  Remember to click on Quit to continue'
+echo '*******************************************************'
+
+./xcm/xcm -grid -gridcolor orange -subgridcolor yellow -o init.dat $1 $2
+
+./zipper/polygon < ./input/polygon.inp >/dev/null
+
+#./zipper/zipper
+
+#./zipper/forward < ./input/forward.inp2 >/dev/null
+
+echo '   '
+echo '   '
+echo '   '
+echo ' You will select 4 boundary points,'
+echo '  creating two non-adjacent arcs on the boundary.'
+echo '  Then a conformal map from a rectangle to the region'
+echo '  will be computed, so that the corners of the rectangle'
+echo '  correspond to the 4 selected boundary points.'
+echo '  The ratio of the length to width of the rectangle'
+echo '  is called the extremal distance between the two'
+echo '  arcs on the boundary created by the four points.'
+echo '  It is the resistance, if the potential difference'
+echo '  between the arcs is 1 and if the rest of the boundary'
+echo '  is insulated.'
+echo '  '
+echo '  '
+echo '  To create the points, select Static Points under Grab'
+echo '  Options. Then select Create Path. Click mb1 three'
+echo '  boundary points in counter-clockwise order, followed by'
+echo '  mb3 on the fourth point. Then select Write Output, OK,'
+echo '  then Quit.'
+echo '   '
+echo ' Press <return> or <enter>.'
+set continue = $<
+echo '   '
+echo '   '
+echo '   '
+echo '   '
+echo '*******************************************************'
+echo '  Remember to click on Quit to continue'
+echo '*******************************************************'
+./xcm/xcm -use 1 red poly.dat -o ends.dat
+echo '  '
+./zipper/extdist<./input/extdist.inp>/dev/null
+echo '  '
+echo '   '
+echo '  Here is the grid on the rectangle.'
+echo '   It has height 1 and length equal to:'
+cat extlen
+echo ' Select Lines & Boxed points under Static Options to see the points.'
+echo '  '
+./xcm/xcm -use 2 red blue rect.ends rect.gridp
+echo '  Here is the image of a rectangular grid in the region.'
+./xcm/xcm -use 3 red blue green arcs1.dat grid.img arcs2.dat
+echo '   '
+echo '   '
+echo '   You can increase the number of grid lines by increasing'
+echo '   the number 20 in the file input/extdist.inp'
+echo '  '
+echo '*******************************************************'
+echo ' Please send bug reports, comments and suggestions to'
+echo ' marshall@math.washington.edu'
+echo '  '
+echo '  '
+echo ' I would appreciate hearing what you used this program for.'
+echo '*******************************************************'
+echo 'Press <return> after reading this message.'
+set getexit = $<

@@ -1,0 +1,24 @@
+
+It looks like there is a point missing just before
+the "other" stagnation point. But it is just
+because of the square root at the tip of the slit
+in the standard region. (Further tests to 
+support this: try circular region also note
+that as tip has smaller angle, pts move closer).
+
+To change the size of the view window, so that
+the flowlines extend farther away from the boundary,
+change xsize and ysize in fluid.f to larger numbers.
+
+fluid.inp2 controls the number of points per line
+and the number of flow lines.
+
+Should really use image of unit circle, by applying forward, instead
+of poly.dat in last plot, and ask the user if it is close enough
+to the desired boundary.
+
+add comment that first time thru just click on quit and you'll see
+an example. or maybe invoke with xcm -e example.dat -o init.dat
+
+Can use flow lines that tend to the boundary geometrically by changing
+fluid.inp2 (see fluid.f)

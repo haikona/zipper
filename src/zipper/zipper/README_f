@@ -1,0 +1,77 @@
+C
+C    Copyright (C) 1993  University of Washington, U.S.A.
+C
+C    Author:   Donald E. Marshall
+C
+C    This program is free software; you can redistribute it and/or modify
+C    it under the terms of the GNU General Public License as published by
+C    the Free Software Foundation; either version 1, or (at your option)
+C    any later version.
+C
+C    This program is distributed in the hope that it will be useful,
+C    but WITHOUT ANY WARRANTY; without even the implied warranty of
+C    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+C    GNU General Public License for more details.
+C
+C    You should have received a copy of the GNU General Public License
+C    along with this program; if not, write to the Free Software
+C    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+C
+C
+C
+C
+
+To run this demonstration,
+compile the fortran programs  by
+copying DEC_makefile_f (or SUN_makefile_f or HP_makefile_f) 
+  The only difference between these makefiles is the optimization
+  option. In each case the optimizers have been disabled (see below)
+to makefile then type: make
+
+For example:
+
+cp DEC_makefile_f makefile
+make
+
+(If none of the makefiles work on your system, look at the manual
+page for f77 or whatever your fortran compiler is.
+I'd appreciate a copy of the makefile you needed)
+
+DO NOT USE ANY OPTIMIZER WITH YOUR FORTRAN COMPILE STATEMENTS. Essentially
+every one I've ever used has some minor problem that becomes critical
+with these routines.  
+
+Don't use:  g77 - GNU project F77 Compiler (v0.5.5)
+It has a lot of bugs.
+
+The demo requires the program xcm, which 
+is supplied in the directory xcm.
+Compile the C program xcm by copying the appropriate Makefile to makefile 
+then type: make
+You can alter the colors used in xcm. As an example, here are the
+lines that I put in my .Xdefaults file:
+
+Xcm*gridColor : orange
+Xcm*subgridColor : yellow
+Xcm*plane.foreground : blue
+Xcm*plane.background : white
+Xcm*background : white
+Xcm*foreground : brown
+
+
+To run the demo type: demo 
+and follow instructions.
+
+To get rid of compiled programs and data files type: make clean
+  (once for the fortran makefile and once for the C makefile)
+
+Problems? Bugs? Drop me a note:  marshall@math.washington.edu
+I'll do what I can.
+
+
+I ask only one favor in return for these programs: Tell me what you
+used them for.  
+
+I will continue to make changes to the code, as suggestions are made.
+Let me know if you want updates.
+

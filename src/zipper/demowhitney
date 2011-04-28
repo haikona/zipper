@@ -1,0 +1,162 @@
+#!/bin/csh -f
+#  demo 
+#
+#  files created:
+#
+#init.dat    original data (created by the user)
+#poly.dat    original data with extra points along polygonal boundary
+#poly.pre    preimage on the unit circle of poly.dat
+#poly.par    parameters for the conformal map
+#twopts.dat  two points in the region (created by the user)
+#twopts.pre  preimage of twopts.dat in the disk
+#ray.dat     data points in disk along orthogonal circle thru twopts.pre
+#ray.img     image of ray.dat in the region (geodesic)
+#whitney.reg vertices of squares in Whitney decomposition
+#whitney.dec whitney.reg written in groups of 5 for graphing
+#whitney.pre preimage of whitney.reg in the disk
+#whitney.dsk whitney.pre written in groups of 5 for graphing
+#
+#
+echo '*******************************************************'
+echo ' This is a demonstration of some of the capabilities'
+echo ' of the conformal mapping programs called ZIPPER.'
+echo '*******************************************************'
+echo '  '
+echo ' Whitney squares and Geodesics'
+echo '  '
+echo ' This program will find a Whitney decomposition of a region,'
+echo ' then conformally map it to the disk. A Whitney decomposition'
+echo ' of a region is a partition into squares whose distance to'
+echo ' the boundary is proportional to its size.' 
+echo '  '
+echo ' The program then computes the (hyperbolic) geodesic through'
+echo ' two given points in the region.'
+echo '  '
+echo ' Press <return> to continue.'
+set continue = $<
+echo '  '
+echo ' As in demo1: To create the boundary of a region, either'
+echo ' copy a data file to init.dat (including an interior point) or:'
+echo ' Click on Create path, click on boundary points with mb1.'
+echo ' Do not close up the curve, but end by clicking with mb3'
+echo ' on a point in the region (This program requires the region'
+echo ' to be bounded). Click on Write output, OK then quit.'
+echo '  '
+echo '  '
+echo ' After every picture, select Quit (with mb 1) to continue'
+echo '  '
+echo '  '
+echo ' Press <return> to create the boundary.'
+set continue = $<
+echo '  '
+#  You can add an ampersand after any command below
+#   to keep the picture on the screen.  
+# WARNING: If you do so, your
+#   speedy machine might continue to the next command before
+#   finishing  writing the output of a previous command
+#   causing errors.
+echo '  '
+./xcm/xcm -grid -gridcolor orange -subgridcolor yellow -o init.dat $1 $2
+
+echo '  '
+echo '  '
+echo ' Next we will put at least 200 points on the boundary of the'
+echo ' polygon, with at least 5 points per edge.'
+# If your data is already  in the proper form for zipper, 
+# (boundary data consists of an even number of points in counterclockwise
+# order, and any bends must occur at odd numbered points - but not the
+# at the first point-and at least 5 
+# points between bends, and the boundary data is followed by the point to 
+#  be mapped to 0) 
+#  the program should then run 25 times faster without using polygon below.
+#  This is particularly useful if your boundary is smooth, or has
+#  only a few bends. It is more accurate if the spacing of points
+#  is roughly like arc length.
+# see the header of zipper.f for more detail on the boundary data
+# requirements.
+
+./zipper/polygon < ./input/polygon.inp >/dev/null
+
+echo '  '
+echo '  Here is the data, followed by the interior point'
+echo '  Change Static Options to Boxed points to see data'
+echo '*******************************************************'
+echo '  Remember to click on Quit to continue'
+echo '*******************************************************'
+./xcm/xcm -use 2 red blue poly.dat init.dat
+
+echo ' Next we will compute the Whitney decomposition of the region.'
+echo '  '
+echo '  '
+
+./zipper/whitney < ./input/whitney.inp >/dev/null
+./zipper/block45 < ./input/block45.inp1 >/dev/null
+
+echo '  '
+echo '  '
+echo '  Here is the Whitney decomposition of the region.'
+echo '  You can increase the number of squares by increasing'
+echo '  the number 7 in input/whitney.inp.'
+echo '  '
+echo '*******************************************************'
+echo '  Remember to click on Quit to continue'
+echo '*******************************************************'
+./xcm/xcm -use 2 blue red whitney.dec poly.dat
+
+echo '  '
+echo '  '
+echo ' Now will will compute the preimage of the Whitney decomposition'
+echo ' in the disk.'
+echo '  '
+echo ' The program actually computes the inverse image of the vertices'
+echo ' of the squares, and connects them with straight line segments.'
+echo ' Thus where two smaller squares are adjacent to a larger square,'
+echo ' you will see two line segments connecting the ends of a longer'
+echo ' line segment.'
+echo '  '
+./zipper/zipper  >/dev/null
+./zipper/inverse < ./input/inverse.inp5  >/dev/null
+./zipper/block45 < ./input/block45.inp2 >/dev/null
+./xcm/xcm -use 2 blue red whitney.dsk ./input/circle1
+echo '  '
+echo '  '
+echo '  '
+echo ' In the next example, we will find the geodesic thru two points.'
+echo '  '
+#echo ' Select Edit Options, then Lines & Boxed Points'
+echo ' Click on Create Path with mb1, then'
+echo ' click on the first point in the data region with mb1' 
+echo ' then click on the second point with mb3.'
+echo '      Use the Ctrl key and mb1, mb2, and mb3'
+echo '      to combine with zooming, if desired.'
+echo ' Then select Write Output (then OK) then quit.'
+echo ' (Be sure your two points are inside the region)'
+
+echo '*******************************************************'
+./xcm/xcm -use 1 red poly.dat -o twopts.dat
+
+echo '  '
+./zipper/inverse<./input/inverse.inp3 >/dev/null
+./zipper/geodes
+./zipper/forward<./input/forward.inp3 >/dev/null
+
+echo '  '
+echo ' Here is the geodesic (blue) beginning at the first point'
+echo ' and passing through the second point, and continuing on'
+echo ' to the boundary. To eliminate the straight line, select' 
+echo ' Edit Options, then Boxed Points. When you are finished looking' 
+echo ' at the picture, click on Quit, then Cancel when prompted for' 
+echo ' the filename for the data.'
+echo '   '
+echo '   '
+echo '*******************************************************'
+./xcm/xcm -use 2 red blue poly.dat ray.img -e twopts.dat
+echo '   '
+echo ' Please send bug reports, comments and suggestions to'
+echo ' marshall@math.washington.edu'
+echo '  '
+echo '  '
+echo ' I would appreciate hearing what you used this program for.'
+echo '*******************************************************'
+echo 'Press <return> after reading this message.'
+set getexit = $<

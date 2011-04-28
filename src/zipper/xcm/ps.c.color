@@ -1,0 +1,590 @@
+/*
+    Copyright (C) 1993  University of Washington, U.S.A.
+
+    Author:   Michael Stark
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 1, or (at your option)
+    any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+*/
+/********************************************/
+/* Functions for creating PostScript output */
+/********************************************/
+
+/****************************************************************************/
+/* AUTHOR:         Michael Stark                                            */
+/* CREATION DATE:  May 17, 1993                                             */
+/* PURPOSE:        This module contains the C functions for creating        */
+/*                 a PostScript rendering of a plane window.                */
+/*                 "PostScript" is a registered trademark of Adobe Systems. */
+/****************************************************************************/
+/* Altered by Don Marshall January 13, 1994                         */
+/* Prints small dots for points and dots thicker than lines if both */
+/* lines and boxed points. Also only prints grid now if grid shown  */
+/* Crude color printing: cycles through red, blue, green for static files*/
+/* When this routine is used to print on black-white printer, the   */
+/* output is not too good, so ps.c is the default routine.          */
+/* If you want color printing, replace ps.c with this program */ 
+
+
+#include <X11/Xlib.h>
+#include <X11/Xutil.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <math.h>
+#include <time.h>
+#include "globals.h"
+#include "file.h"
+#include "path.h"
+#include "menu.h"
+#include "xplane.h"
+#include "primary.h"
+#include "ps.h"
+
+/*#define TIMES_WIDTH     0.5
+#define HELVETICA_WIDTH 0.56
+#define COURIER_WIDTH   0.6*/
+
+extern int PointFileCount;
+extern point_type **PointFile;
+
+extern int ShowGrid;
+
+extern simple_menu FileDisplayMenu;
+extern simple_menu EditDisplayMenu;
+
+static double label_width, label_height;
+static double max_label_width, max_label_height;
+static double plane_width, plane_height;
+
+static double X0, Y0;
+static double X1, Y1;
+
+static double Scale;
+
+
+complex world_to_PS( obj, source )
+     plane_window *obj;
+     complex      source;
+{
+  complex value;
+
+  value.x = (source.x - obj->x0)/(obj->x1-obj->x0);
+  value.y = (source.y - obj->y0)/(obj->x1-obj->x0);
+
+  return(value);
+}
+
+complex world_to_PS0( obj, x, y )
+     plane_window *obj;
+     double       x, y;
+{
+  complex z;
+
+  z.x = x;
+  z.y = y;
+  return(world_to_PS(obj, z));
+}
+
+void PS_draw_line( obj, file, x1, y1, x2, y2 )
+     plane_window *obj;
+     FILE         *file;
+     double       x1, y1;
+     double       x2, y2;
+{
+  complex z1, z2;
+
+  z1.x = x1;
+  z1.y = y1;
+  z1 = world_to_PS(obj, z1);
+
+  z2.x = x2;
+  z2.y = y2;
+  z2 = world_to_PS(obj, z2);
+
+  fprintf(file, "%.4f %.4f %.4f %.4f ls\n",
+	  z1.x, z1.y, z2.x, z2.y);
+}    
+
+void PS_draw_point( obj, file, z)
+     plane_window *obj;
+     FILE         *file;
+     complex      z;
+{
+  complex z1;
+
+  z1 = world_to_PS(obj, z);
+  fprintf(file, "%.4f %.4f c\n", z1.x, z1.y);
+}    
+
+void PS_draw_dot( obj, file, z)
+     plane_window *obj;
+     FILE         *file;
+     complex      z;
+{
+  complex z1;
+
+  z1 = world_to_PS(obj, z);
+  fprintf(file, "%.4f %.4f cd\n", z1.x, z1.y);
+}    
+
+void PS_right_string( obj, file, x, y, string )
+     plane_window *obj;
+     FILE         *file;
+     double       x, y;
+     char         string[];
+{
+  complex z, z0;
+
+  z0.x = x;
+  z0.y = y;
+
+  z = world_to_PS(obj, z0);
+  fprintf(file, "(%s) %.4f %.4f rs\n", string, 
+	  z.x - PS_FONT_SCALE/Scale*0.25, z.y);
+}  
+
+void PS_top_string( obj, file, x, y, string )
+     plane_window *obj;
+     FILE         *file;
+     double       x, y;
+     char         string[];
+{
+  complex z, z0;
+
+  z0.x = x;
+  z0.y = y;
+
+  z = world_to_PS(obj, z0);
+  fprintf(file, "(%s) %.4f %.4f ts\n", string, z.x, z.y);  
+}    
+
+void PS_header( file )
+     FILE *file;
+  /* PRE : 'file' is open for writing text. */
+  /* POST: Writes the header for an Encapsulated PostScript */
+{
+  double width, height;
+  time_t cal_time;
+  char   *time_string;
+
+  fprintf(file, "%%!PS-Adobe-2.0 EPSF-2.0\n");
+
+  width = plane_width + label_width;
+  height = plane_height + label_height;
+/* 5-31-05 D. Marshall changed .2 to .0 to comply with current*/
+/* postscript printers*/
+  fprintf(file, "%%%%BoundingBox: %.0f %.0f %.0f %.0f\n",
+	  PS_CENTER_X - width/2, PS_CENTER_Y - height/2,
+	  PS_CENTER_X + width/2 + PS_FONT_SCALE, 
+	  PS_CENTER_Y + height/2 + PS_FONT_SCALE);
+
+  fprintf(file, "%%%%Creator: %s\n", NAME);
+
+  if (time(&cal_time)) {
+    time_string = ctime(&cal_time);
+    fprintf(file, "%%%%Creation Date: %s", time_string);
+  }
+  fprintf(file, "%%%%EndComments\n");
+
+  /* Define the various routines */
+  fprintf(file, "/ls {moveto lineto stroke} bind def\n");
+
+/* Marshall altered below 3-29-95 so files properly drawn  */
+  fprintf(file, "/c {newpath %.4f 0 360 arc fill} bind def\n", 1.0/Scale);
+  fprintf(file, "/cd {newpath %.4f 0 360 arc fill} bind def\n", 0.3/Scale);
+/*  if (((FileDisplayMenu.index == 2) || (FileDisplayMenu.index == 3)) || */
+/*     ((EditDisplayMenu.index == 2) || (EditDisplayMenu.index == 3))) */
+/*  {*/
+/*   fprintf(file, "/c {newpath %.4f 0 360 arc fill} bind def\n", 1.0/Scale);*/
+/*  }*/
+
+/*  else*/
+/*  {*/
+/*   fprintf(file, "/c {newpath %.4f 0 360 arc fill} bind def\n", 0.3/Scale);*/
+/*  }*/
+
+  fprintf(file, "/Scale %f def\n", Scale);
+  fprintf(file, "/FontScale %f Scale div def\n", PS_FONT_SCALE);
+
+  fprintf(file, "/rs {moveto dup stringwidth pop neg ");
+  fprintf(file, "FontScale -0.312 mul rmoveto show} def\n");
+
+  fprintf(file, "/ts {moveto dup stringwidth pop -0.5 mul ");
+  fprintf(file, "FontScale -0.80 mul rmoveto show} def\n");
+}
+
+double PS_string_width( source )
+     char source[];
+  /* POST: Returns the approximate width of the string 'source' in units of */
+  /*       the current font scale.                                          */
+{
+  return((double) strlen(source)*TIMES_CHAR_WIDTH);
+}
+
+void PS_globals( obj )
+     plane_window *obj;
+{
+  double x, y;
+  int    precision;
+  double r;
+  char   label_string[64];
+
+  /* Find the width of the axes label */
+  precision = obj->log_decade;
+  y = obj->gy0;
+  to_string(label_string, y, precision-1);
+  strcat(label_string, " ");
+  label_width = PS_string_width(label_string)*PS_FONT_SCALE;
+  label_height = PS_FONT_SCALE;
+
+  /* Calculate the maximum label width and height */
+  max_label_width = TIMES_CHAR_WIDTH*PS_MAX_LABEL*PS_FONT_SCALE;
+  max_label_height = PS_FONT_SCALE;
+
+  /* calculate the bounding box for the plane */
+  plane_width = PS_WIDTH - max_label_width;
+  plane_height = plane_width*(obj->y1-obj->y0)/(obj->x1-obj->x0);
+  
+  /* condense, if necessary, so that the entire height fits */
+  if (plane_height > (PS_HEIGHT-label_height)) {
+    r = plane_height/(PS_HEIGHT - label_height);
+    plane_height /= r;
+    plane_width /= r;
+  }
+  
+  /* Calculate the values for the transformation */
+  X0 = PS_CENTER_X - (label_width + plane_width)/2.0 + label_width;
+  Y0 = PS_CENTER_Y - (label_height + plane_height)/2.0 + label_height;
+
+  Scale = plane_width;
+}
+  
+
+/***********************/
+/* Grid Line Functions */
+/***********************/
+
+void PS_draw_grid( obj, file )
+     plane_window *obj;
+     FILE         *file;
+{
+  /* The grid shows lines at each integer multiple of some power of ten,   */
+  /* called the "decade", then shows weaker lines subdividing each decade. */
+
+  double  decade;
+  double  x, y;
+  int     k, k0;
+
+  fprintf(file, "%% Grid Lines\n");
+
+  /* If there are too few lines, show the next decade down      */
+  /* This is drawn first so the "brighter" lines appear on top. */
+
+  if (obj->subgrid) {
+    fprintf(file, "1 1 0 setrgbcolor %f setlinewidth\n", PS_LINE_WIDTH/Scale);
+/*    fprintf(file, "%f setlinewidth\n", PS_SUBGRID_WIDTH/Scale);*/
+/*    fprintf(file, "[%f %f] 0 setdash\n", 
+	    PS_SUBGRID_DASH/Scale, 10*PS_SUBGRID_DASH/Scale);*/
+    decade = obj->decade/10.0;
+    
+    for (k = obj->sub_xk0; k <= obj->sub_xk1; k++)
+      if (k % 10) {
+	x = obj->gx0 + k*decade;
+	if (x < obj->x1)
+	  PS_draw_line(obj, file, x, obj->y0, x, obj->y1);
+      }
+
+    for (k = obj->sub_yk0; k <= obj->sub_yk1; k++)
+      if (k % 10) {
+	y = obj->gy0 + k*decade;
+	if (y < obj->y1)
+	  PS_draw_line(obj, file, obj->x0, y, obj->x1, y); 
+      }
+  }
+
+  /* Draw the main grid */
+
+  /* Draw the lines */
+/*  fprintf(file, "%f setlinewidth\n", PS_GRID_WIDTH/Scale); */
+    fprintf(file, "1 .5 0 setrgbcolor %f setlinewidth\n", PS_LINE_WIDTH/Scale);
+  /*fprintf(file, "[%f %f] 0 setdash\n", 
+	  PS_GRID_DASH/Scale, 2*PS_GRID_DASH/Scale); */
+  for (k = 0; k <= obj->lines_x; k++) {
+    x = obj->gx0 + k*obj->decade;
+    if (x < obj->x1) 
+      PS_draw_line(obj, file, x, obj->y0, x, obj->y1);
+  }
+
+  for (k = 0; k <= obj->lines_y; k++) {
+    y = obj->gy0 + k*obj->decade;
+    if (y < obj->y1) 
+      PS_draw_line(obj, file, obj->x0, y, obj->x1, y);
+  }
+
+}
+
+void PS_label_grid( obj, file )
+     primary_window *obj;
+     FILE         *file;
+{
+  double       x, y;
+  int          precision;
+  int          k = 0;
+  XPoint       view;
+  complex      line1, line2;
+  complex      world;
+  int          width;
+  double       decade_width;
+  int          skip;
+  static char  value[128];
+
+  fprintf(file, "/Times-Roman findfont %f scalefont setfont\n",
+	  PS_FONT_SCALE/Scale);
+  
+    fprintf(file, "0 0 0 setrgbcolor %f setlinewidth\n", PS_LINE_WIDTH/Scale);
+
+  precision = obj->plane.log_decade;
+
+  /* Label the y-axis */
+  x = obj->plane.x0;
+  y = obj->plane.gy0;
+
+  while (y <= obj->plane.y1) {
+    to_string(value, y, precision-1);
+    PS_right_string(&(obj->plane), file, x, y, value);
+    y += obj->plane.decade;
+  }
+
+  /* Label the x-axis */
+  x = obj->plane.gx0;
+  y = obj->plane.y0;
+
+  /* Calculate the width of the first label */
+  to_string(value, x, precision-1);
+  width = PS_string_width(value)*PS_FONT_SCALE/Scale;
+
+  /* Calculate the separation between decade lines */
+  line1 = world_to_PS0(&(obj->plane), obj->plane.gx0, obj->plane.y0);
+  line2 = world_to_PS0(&(obj->plane), obj->plane.gx0 + obj->plane.decade,
+			   obj->plane.y0);
+  decade_width = line2.x - line1.x;
+  
+  /* Now calculate how many decade lines to skip */
+  skip = (width)/fabs(decade_width) + 1;
+
+  while (x <= obj->plane.x1) {
+    if (!(k % skip)) {
+      to_string(value, x, precision-1);
+      PS_top_string(&(obj->plane), file, x, y, value);
+    }
+    x += obj->plane.decade;
+    k++;
+  }
+
+  /* Label the subgrid, if necessary */
+  x = obj->plane.x0;
+
+  if ((obj->plane.lines_y <= 2) && (obj->plane.subgrid)) {
+    for (k = obj->plane.sub_yk0; k <= obj->plane.sub_yk1; k++) 
+
+      if ((k % 10) && !(k % 2)) {
+	y = obj->plane.gy0 + k*obj->plane.decade/10;
+	to_string(value, y, precision-1);
+	PS_right_string(&(obj->plane), file, x, y, value);
+      }
+  }
+
+}
+
+
+void PS_draw_file( obj, file )
+     plane_window *obj;
+     FILE         *file;
+{
+  primary_window *parent;
+  point_type     *ptr;
+  complex        c1, c2;
+  int            j, k, kcolor;
+
+  parent = (primary_window*) obj->parent_struct;
+
+  /* Draw the graph */
+
+  kcolor = 0;
+
+  for (k = 0; k < PointFileCount; k++) {
+
+    kcolor = kcolor + 1;
+    if ( kcolor > 3 ) 
+    {
+       kcolor =1; 
+    }
+
+    fprintf(file, "%% Lines\n");
+    if ( kcolor == 1 ) 
+    {
+    fprintf(file, "1 0 0 setrgbcolor %f setlinewidth\n", PS_LINE_WIDTH/Scale);
+    }
+    if ( kcolor == 2 )
+    {
+    fprintf(file, "0 0 1 setrgbcolor %f setlinewidth\n", PS_LINE_WIDTH/Scale);
+    }
+    if( kcolor == 3)
+    {
+    fprintf(file, "0 1 0 setrgbcolor %f setlinewidth\n", PS_LINE_WIDTH/Scale);
+    }
+
+
+    /* Draw the lines, if that is what the option is */
+    if ((FileDisplayMenu.index == 0) || (FileDisplayMenu.index == 3)) {
+      for (ptr = PointFile[k]; ptr != NULL; ptr = ptr->next) {
+	for (j = 0; j < ptr->count-1; j++) {
+	  if (p_clip_line(obj, ptr->points[j], ptr->points[j+1], &c1, &c2))
+	    PS_draw_line(obj, file, c1.x, c1.y, c2.x, c2.y);
+	}
+      }
+    }
+    /* Otherwise, draw only the points */
+/* Marshall altered 3-29-92 to properly draw points*/
+    if (FileDisplayMenu.index == 1) {
+      for (ptr = PointFile[k]; ptr != NULL; ptr = ptr->next) 
+	for (j = 0; j < ptr->count; j++) 
+	  if (p_in_view(obj, ptr->points[j]))
+	    PS_draw_dot(obj, file, ptr->points[j]);
+    }
+    if ((FileDisplayMenu.index == 2) || (FileDisplayMenu.index == 3)) {
+      for (ptr = PointFile[k]; ptr != NULL; ptr = ptr->next) 
+	for (j = 0; j < ptr->count; j++) 
+	  if (p_in_view(obj, ptr->points[j]))
+	    PS_draw_point(obj, file, ptr->points[j]);
+    }
+  }
+}
+
+void PS_draw_path( obj, path, file )
+     plane_window *obj;
+     path_node    *path;
+     FILE         *file;
+{
+  complex        c1, c2;
+  complex        z1, z2;
+  complex        z;
+  path_node      *ptr;
+ 
+    fprintf(file, "%% New Lines\n");
+    fprintf(file, ".5 0 0 setrgbcolor %f setlinewidth\n", PS_LINE_WIDTH/Scale);
+/*    fprintf(file, "0.0 setgray %f setlinewidth\n", PS_LINE_WIDTH/Scale);*/
+/*   fprintf(file, "[] 0 setdash\n");*/
+
+
+  if ((EditDisplayMenu.index == 0) || (EditDisplayMenu.index == 3)) {
+    for (ptr = path; ptr != NULL; ptr = ptr->next) {
+      if (ptr->next != NULL) {
+	z1 = path_node_point(ptr);
+	z2 = path_node_point(ptr->next);
+	if (p_clip_line(obj, z1, z2, &c1, &c2))
+	  PS_draw_line(obj, file, c1.x, c1.y, c2.x, c2.y);
+      }
+    }
+  }
+  
+/* Marshall altered to properly draw points on 3-29-95*/
+/*  if ((EditDisplayMenu.index != 0) && (EditDisplayMenu.index != 4)) {*/
+  if (EditDisplayMenu.index == 1)  {
+    for (ptr = path; ptr != NULL; ptr = ptr->next) {
+      z = path_node_point(ptr);
+      if (p_in_view(obj, z))
+	PS_draw_dot(obj, file, z);
+    }
+  }
+  if ((EditDisplayMenu.index == 2) || (EditDisplayMenu.index == 3)) {
+    for (ptr = path; ptr != NULL; ptr = ptr->next) {
+      z = path_node_point(ptr);
+      if (p_in_view(obj, z))
+	PS_draw_point(obj, file, z);
+    }
+  }
+}
+
+void PS_draw_graph( primary, file )
+     primary_window *primary;
+     FILE           *file;
+{
+  path_node *ptr;
+  int       k;
+
+  for (k = 0; k < primary->graph.path_count; k++)
+    PS_draw_path(&(primary->plane), primary->graph.paths[k], file);
+
+  if (primary->graph.current_path != NULL) 
+    PS_draw_path(&(primary->plane), primary->graph.current_path, file);
+}
+
+
+char PS_out( obj, name )
+     primary_window *obj;
+     char           *name;
+{
+  FILE   *ps_file;
+  double h;
+
+  PS_globals(&(obj->plane));
+  if ((ps_file = fopen(name, "w")) == NULL)
+    return(0);
+      
+  PS_header(ps_file);
+
+  fprintf(ps_file, "%.2f %.2f translate\n", X0, Y0);
+  fprintf(ps_file, "%.2f %.2f scale\n", Scale, Scale);
+
+  /* Draw the bounding box and grid only if grid shown*/
+if (ShowGrid) {
+  h = plane_height/plane_width;
+  fprintf(ps_file, "%.4f setlinewidth\n", PS_BORDER_WIDTH/Scale);
+  fprintf(ps_file, "0 0 moveto 0 %.4f lineto 1 %.4f ", h, h);
+  fprintf(ps_file, "lineto 1 0 lineto closepath stroke\n");
+
+  /* Draw the grid and subgrid if Static file has lines*/
+/*  if ((FileDisplayMenu.index == 0) || (FileDisplayMenu.index == 3)) {*/
+/*    if ((EditDisplayMenu.index == 0) || (EditDisplayMenu.index == 3)) {*/
+/*       PS_draw_grid(&(obj->plane), ps_file);*/
+/*    }*/
+/*  }*/
+
+/* Draw the grid only if it isn't hidden */
+	
+   PS_draw_grid(&(obj->plane), ps_file);
+
+/* label grid */
+  PS_label_grid(obj, ps_file);
+}
+
+  /* Draw the static lines */
+  PS_draw_file(&(obj->plane), ps_file);
+
+
+  /* Draw the new lines */
+  PS_draw_graph(obj, ps_file);
+
+  fprintf(ps_file, "%%%%Trailer\n");
+  fprintf(ps_file, "showpage\n");
+
+  fclose(ps_file);
+  return(1);
+}
+
+  
+  
+
+
