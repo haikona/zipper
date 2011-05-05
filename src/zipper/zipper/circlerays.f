@@ -1,6 +1,6 @@
       implicit double precision(a-h,o-z)
       dimension x(80000),y(80000)
-      open(1,file='data.d',status='unknown')
+      open(1,file='./output/data.d',status='unknown')
       pi=3.14159265358979323d0
       npts=0
    2  write(*,*)' radius of circle (will stop if lt 0)'

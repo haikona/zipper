@@ -28,7 +28,7 @@ c distance from 1 equal to .9 times the distance for the
 c previous point.
       implicit double precision(a-h,o-y),complex*16(z)
       character*55 filenm
-      open(1,file='twopts.pre',status='unknown')
+      open(1,file='./output/twopts.pre',status='unknown')
       read(1,*)x,y
       z1=dcmplx(x,y)
       read(1,*)x,y
@@ -37,7 +37,7 @@ c previous point.
       zc1=(z2-z1)/(1.d0-z1c*z2)
       dd=cdabs(zc1)
       zc2=zc1/dd
-      open(2,file='ray.dat',status='unknown')
+      open(2,file='./output/ray.dat',status='unknown')
       np=300
       dxo=1.d0
       dd1=1.d0-dd

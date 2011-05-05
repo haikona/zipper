@@ -10,7 +10,7 @@ To change the size of the view window, so that
 the flowlines extend farther away from the boundary,
 change xsize and ysize in fluid.f to larger numbers.
 
-fluid.inp2 controls the number of points per line
+./output/fluid.inp2 controls the number of points per line
 and the number of flow lines.
 
 Should really use image of unit circle, by applying forward, instead
@@ -21,4 +21,4 @@ add comment that first time thru just click on quit and you'll see
 an example. or maybe invoke with xcm -e example.dat -o init.dat
 
 Can use flow lines that tend to the boundary geometrically by changing
-fluid.inp2 (see fluid.f)
+./output/fluid.inp2 (see fluid.f)

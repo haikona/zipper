@@ -30,11 +30,11 @@ c  so that flows are graphed separately
       read(1,*)nflows
       nflowl=nflows/2
       nflows=nflowl*2 + 1
-      open(6,file='infty.pre',status='unknown')
-      open(7,file='circflow',status='unknown')
-      open(2,file='circflow.dsk',status='unknown')
-      open(3,file='circflow.img',status='unknown')
-      open(4,file='cflow.lines',status='unknown')
+      open(6,file='./output/infty.pre',status='unknown')
+      open(7,file='./output/circflow',status='unknown')
+      open(2,file='./output/circflow.dsk',status='unknown')
+      open(3,file='./output/circflow.img',status='unknown')
+      open(4,file='./output/cflow.lines',status='unknown')
       read(6,*)x,y
       z1=dcmplx(x,y)
       read(6,*)x,y

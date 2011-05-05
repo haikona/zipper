@@ -1,4 +1,4 @@
 6
 1
-cgrid.dat
-poly.grid
+./output/cgrid.dat
+./output/poly.grid

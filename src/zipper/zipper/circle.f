@@ -25,7 +25,7 @@ C
        write(*,*)' number of points on the circle?'
        read(*,*)num
    80  format(a55)
-       open(1,file='fftpts.dat',status='unknown')
+       open(1,file='./output/fftpts.dat',status='unknown')
        thet=0.
        pi=3.14159265358979324d0
        tpi=2.*pi

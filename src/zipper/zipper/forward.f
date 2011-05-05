@@ -43,7 +43,7 @@ c              occurances of 120001 and 120000 with a larger number.
      1zto0,zto1,angler,zrot2,m,n
    80 format(a55)
 c  file with mapping parameters is called poly.par
-      open(4,file='poly.par',status='unknown')
+      open(4,file='./output/poly.par',status='unknown')
       read(4,*)z1,z2,z3,zrot1,zto0,zto1,angler,zrot2
       do 981 j=1,120000
          jj=j*2+2
@@ -57,9 +57,9 @@ c  file with mapping parameters is called poly.par
       read(*,*)nchoice
       if(nchoice.lt.1)goto 50
 c file with preimages of vertices is called poly.pre
-      open(1,file='poly.pre',status='old')
+      open(1,file='./output/poly.pre',status='old')
 c file with image of unit circle is poly.img
-      open(7,file='poly.img',status='unknown')
+      open(7,file='./output/poly.img',status='unknown')
       zm=dcmplx(0.d0,0.d0)
       do 55 j=1,120000
          read(1,999,end=56)x,y
@@ -77,7 +77,7 @@ c file with image of unit circle is poly.img
       read(*,*)m
       call intmed
       mn=n*m
-      open(8,file='poly.int',status='unknown')
+      open(8,file='./output/poly.int',status='unknown')
       do 980 j=1,mn
          x=dreal(z(j))
          y=dimag(z(j))
@@ -260,7 +260,7 @@ c----Estimate relative error-------------------------------------------
       write(*,*)' Estimate of the relative error is in the file'
       write(*,*)' called error.est.'
       write(*,*)
-      open(9, file='error.est',status='unknown')
+      open(9, file='./output/error.est',status='unknown')
       write(9,99)error
    99 format(f10.7)
       return

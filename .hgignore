@@ -10,6 +10,7 @@ syntax: glob
 *.pre
 
 .DS_Store
+src/zipper/output/*
 src/zipper/zipper/origpre
 src/zipper/zipper/blankl
 src/zipper/zipper/block45
@@ -21,16 +22,7 @@ src/zipper/zipper/fluid
 src/zipper/zipper/forward
 src/zipper/zipper/geodes
 src/zipper/zipper/imagegr
-src/zipper/output/index.dat
-src/zipper/output/init.dat
 src/zipper/zipper/inverse
-src/zipper/output/logfile
-src/zipper/output/poly.dat
-src/zipper/output/poly.par
-src/zipper/output/poly.pre
-src/zipper/output/grid.dat
-src/zipper/output/grid.pre
-src/zipper/output/orig.pre
 src/zipper/zipper/polygon
 src/zipper/zipper/polyline
 src/zipper/zipper/stagpt
