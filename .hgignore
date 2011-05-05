@@ -10,7 +10,10 @@ syntax: glob
 *.pre
 
 .DS_Store
-src/zipper/output/*
+src/zipper/output/*.*
+src/zipper/output/logfile
+src/zipper/output/circflow
+
 src/zipper/zipper/origpre
 src/zipper/zipper/blankl
 src/zipper/zipper/block45
