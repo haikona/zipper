@@ -1,3 +1,5 @@
+C    XXX WRITING SOME STUPID STUFF HERE XXX
+C
 C
 C    Copyright (C) 1996  University of Washington, U.S.A.
 C
