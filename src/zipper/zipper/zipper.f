@@ -60,22 +60,24 @@ c
 c              This version is limited to 120000 boundary points including the 
 c              intermediate points.  To increase this limit, replace all
 c              occurances of 120001 and 120000 with larger numbers.
-      subroutine zipper(zpts,m,intpt,zparams,abc)
+      subroutine zipper(zpts,m,intpt,zparams,abc,zpre)
 c
       implicit double precision(a-h,o-y),integer*4(i-n),complex*16(z)
 c      integer*4 m
-      dimension zpts(m),zparams(8),abc(120001,3)
+      dimension zpts(m),zparams(8),abc(120001,3),zpre(m)
       common z(120001),a(120001),b(120001),c(120001),z1,z2,z3,zrot1,
      1zto0,zto1,angler,zrot2,n
 c      complex pts(m)
 Cf2py intent(in) pts, m, intpt
-Cf2py intent(out) zparams, abc
+Cf2py intent(out) zparams, abc, zpre
+c
+c
 c  file containing data is called poly.dat
 c      open(1,file='poly.dat',status='old')
 c  file containing mapping parameters is called poly.par
-      open(4,file='poly.par',status='unknown')
+c      open(4,file='poly.par',status='unknown')
 c  file containing preimages of data on the unit circle is poly.pre
-      open(3,file='poly.pre',status='unknown')
+c      open(3,file='poly.pre',status='unknown')
 c
 c      do 55 j=1,120000
 c          read(1,*,end=56)x,y
@@ -92,6 +94,7 @@ c  Cast input array pts to array z:
       do 55 j=1,m
           z(j)=zpts(j)
    55 continue
+c n is the size of the input data; attach interior point at the end
       n = m
       np = n+1
       z(np)=intpt
@@ -168,10 +171,13 @@ C         z(n-j)=ztemp
 C  980 continue
 C  983 continue
 C      z(np)=zint
+c
+c
+c
       call invers
-      write(4,*)z1,z2,z3,zrot1,zto0,zto1,angler,zrot2
-      do 981 j=4,n-2,2
-  981 write(4,*)a(j),b(j),c(j)
+c      write(4,*)z1,z2,z3,zrot1,zto0,zto1,angler,zrot2
+c      do 981 j=4,n-2,2
+c  981 write(4,*)a(j),b(j),c(j)
       zm=dcmplx(0.d0,0.d0)
       ierr=0
       do 982 j=1,n
@@ -181,9 +187,10 @@ C      z(np)=zint
          write(*,*)' WARNING: prevertices',j,' and',jm,' are equal'
       endif
       zm=z(j)
-      x=dreal(z(j))
-      y=dimag(z(j))
-  982 write(3,*)x,y
+c      x=dreal(z(j))
+c      y=dimag(z(j))
+c  982 write(3,*)x,y
+ 982  continue
       if(ierr.eq.1)then
             write(*,*)' This occurred because two points are too close'
             write(*,*)' on the boundary (poly.dat). Their preimages on '
@@ -200,7 +207,7 @@ C      z(np)=zint
       endif
 c  999 format(3f25.15)
 c      stop
-c
+c Copying parameters and polygon preimage to output arrays
       zparams(1)=z1
       zparams(2)=z2
       zparams(3)=z3
@@ -218,6 +225,9 @@ c
           abc(k,3)=c(j)
           k=k+1
  985  continue
+      do 986 j=1,m
+          zpre(j)=z(j)
+ 986  continue
 c
       end
 c
