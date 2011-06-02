@@ -8,6 +8,7 @@ syntax: glob
 *.pdf
 *.dat
 *.pre
+*.tmp
 
 .DS_Store
 src/zipper/output/*.*

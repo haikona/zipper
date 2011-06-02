@@ -77,7 +77,7 @@ c  file containing preimages of data on the unit circle is poly.pre
    55 continue
       write(*,*)' more than 120000 points (Recompile)'
       stop
-   56 n=j-2
+   56 n=j-2     
 C
 C the tests below have been moved to polygon.f
 C remove last point if the curve is closed
