@@ -22,10 +22,10 @@ C
 C
       program stagpt
       implicit double precision(a-h,o-y),complex*16(z)
-      open(1,file='./output/stagpt.dat',status='unknown')
+      open(1,file='stagpt.dat',status='unknown')
       read(1,*)x,y
       zstag=dcmplx(x,y)
-      open(3,file='./output/poly.dat',status='unknown')
+      open(3,file='poly.dat',status='unknown')
       diff=99.d0
       do 1 k=1,10000
          read(3,*,end=3)x,y
@@ -37,11 +37,11 @@ C
          endif
     1 continue
     3 continue
-      open(4,file='./output/poly.pre',status='unknown')
+      open(4,file='poly.pre',status='unknown')
       do 2 k=1,index
          read(4,*)x,y
     2 continue
-      open(2,file='./output/stagpt.pre',status='unknown')
+      open(2,file='stagpt.pre',status='unknown')
       write(2,*)x,y
       stop
       end

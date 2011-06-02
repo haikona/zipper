@@ -36,10 +36,10 @@ c      program zipper
       read(*,80)filenm
    80 format(a55)
       open(1,file=filenm,status='old')
-      open(3,file='./output/poly.pre',status='unknown')
-      open(4,file='./output/poly.par',status='unknown')
-      open(10,file='./output/arcs1.dat',status='unknown')
-      open(17,file='./output/arcs2.dat',status='unknown')
+      open(3,file='poly.pre',status='unknown')
+      open(4,file='poly.par',status='unknown')
+      open(10,file='arcs1.dat',status='unknown')
+      open(17,file='arcs2.dat',status='unknown')
       do 55 j=1,10000
           read(1,*,end=56)x,y
           z(j)=dcmplx(x,y)
@@ -97,7 +97,7 @@ c   of the vertices by the above map is not Jordan.
              z(n-j)=ztemp
   980     continue
       endif
-      open(2,file='./output/ends.dat',status='unknown')
+      open(2,file='ends.dat',status='unknown')
       do 25 j=1,4
          read(2,*)x,y
          zzz=dcmplx(x,y)
@@ -212,13 +212,13 @@ c      endif
       mm=ndat
       write(*,*)'   '
       call invert
-      open(13,file='./output/curve.disk',status='unknown')
+      open(13,file='curve.disk',status='unknown')
       do 68 j=1,ndat
          xdat=dreal(z(j))
          ydat=dimag(z(j))
          write(13,999)xdat,ydat
    68 continue
-      write(*,*)' image of data points in disk is in file /curve.disk'
+      write(*,*)' image of data points in disk is in file curve.disk'
    65 continue
 c      Takes 4 points on unit circle & finds length of conformally
 c      equivalent rectangle with height 1 (points corres. to vertices)
@@ -250,7 +250,7 @@ c
       write(*,*)'   length of equivalent rectangle of height 1 ='
       write(*,*)xlen
       write(*,*)'   '
-      open(16,file='./output/extlen',status='unknown')
+      open(16,file='extlen',status='unknown')
       write(16,995)xlen
   995 format(f10.4)
       mapprox=n
@@ -306,7 +306,7 @@ c
       zn(2)=0.d0
       zn(3)=dcmplx(xlen,0.d0)
       zn(4)=zn(3)+zi
-      open(11,file='./output/rect.ends',status='unknown')
+      open(11,file='rect.ends',status='unknown')
       do 76 j=1,5
          x=dreal(zn(j))
          y=dimag(zn(j))
@@ -370,7 +370,7 @@ c  next we find the l.f.t. mapping zr(j) to zend(j).
    62 continue
       mm=ndat
       call eval 
-      open(14,file='./output/curve.rect',status='unknown')
+      open(14,file='curve.rect',status='unknown')
       do 61 j=1,ndat
          xdat=dreal(z(j))
          ydat=dimag(z(j))
@@ -379,7 +379,7 @@ c  next we find the l.f.t. mapping zr(j) to zend(j).
       write(14,*)'   '
       xz=0.d0
       xo=1.d0
-      open(15,file='./output/rect.dat',status='unknown')
+      open(15,file='rect.dat',status='unknown')
       write(15,*)xz,xz
       write(15,*)xlen,xz
       write(15,*)xlen,xo
@@ -431,7 +431,7 @@ c  0.le.(1-dy/dx).le. 1/(nn*xlen)
          write(*,*)' reduce number of vertical subdiv. of rect.'
          stop
       endif
-      open(8,file='./output/rect.gridp',status='unknown')
+      open(8,file='rect.gridp',status='unknown')
       do 777 k=1,mm
          x=dreal(z(k))
          y=dimag(z(k))
@@ -478,7 +478,7 @@ c      open(4,file=filenm,status='unknown')
       write(*,*)'  '
       write(*,*)' Finished mapping grid to region'
       write(*,*)'  '
-      open(9,file='./output/grid.img',status='unknown')
+      open(9,file='grid.img',status='unknown')
 c Here reorder for graphing purposes
       in=nn+1
       do 12 k=1,m-1

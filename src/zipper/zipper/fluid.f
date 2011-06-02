@@ -31,8 +31,8 @@ c  fluid.inp2 should contain the number of points on each half
 c         flow line and the number of flow lines (odd)
 c         then 0 for evenly spaced flowlines
 c         and  1 for flowlines approaching the boundary geometrically
-      open(1,file='./output/stagpt.pre',status='unknown')
-      open(4,file='./output/infty.pre',status='unknown')
+      open(1,file='stagpt.pre',status='unknown')
+      open(4,file='infty.pre',status='unknown')
       open(2,file='input/fluid.inp2',status='unknown')
       read(1,*)x,y
       zs=dcmplx(x,y)
@@ -72,7 +72,7 @@ c  increase xsize, ysize  to get bigger picture
       nflowsl=nflows/2
       nflows=2*nflowsl+1
       write(*,*)' output of flow past circle will be in file circflow'
-      open(3,file='./output/circflow',status='unknown')
+      open(3,file='circflow',status='unknown')
       y=-ysize
       dy=ysize/nflowsl
       dx=xsize*xt/(nflowpt-1)

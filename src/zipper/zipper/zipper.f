@@ -60,24 +60,41 @@ c
 c              This version is limited to 120000 boundary points including the 
 c              intermediate points.  To increase this limit, replace all
 c              occurances of 120001 and 120000 with larger numbers.
-      program zipper
-
+      subroutine zipper(zpts,m,intpt,zparams,abc)
+c
       implicit double precision(a-h,o-y),integer*4(i-n),complex*16(z)
+c      integer*4 m
+      dimension zpts(m),zparams(8),abc(120001,3)
       common z(120001),a(120001),b(120001),c(120001),z1,z2,z3,zrot1,
      1zto0,zto1,angler,zrot2,n
+c      complex pts(m)
+Cf2py intent(in) pts, m, intpt
+Cf2py intent(out) zparams, abc
 c  file containing data is called poly.dat
-      open(1,file='./output/poly.dat',status='old')
+c      open(1,file='poly.dat',status='old')
 c  file containing mapping parameters is called poly.par
-      open(4,file='./output/poly.par',status='unknown')
+      open(4,file='poly.par',status='unknown')
 c  file containing preimages of data on the unit circle is poly.pre
-      open(3,file='./output/poly.pre',status='unknown')
-      do 55 j=1,120000
-          read(1,*,end=56)x,y
-          z(j)=dcmplx(x,y)
+      open(3,file='poly.pre',status='unknown')
+c
+c      do 55 j=1,120000
+c          read(1,*,end=56)x,y
+c          z(j)=dcmplx(x,y)
+c   55 continue
+c      write(*,*)' more than 120000 points (Recompile)'
+c      stop
+c   56 n=j-2
+c  Cast input array pts to array z: 
+      if(m.gt.120000)then
+          write(*,*)' more than 120000 points (Recompile)'
+          stop
+      endif
+      do 55 j=1,m
+          z(j)=zpts(j)
    55 continue
-      write(*,*)' more than 120000 points (Recompile)'
-      stop
-   56 n=j-2     
+      n = m
+      np = n+1
+      z(np)=intpt
 C
 C the tests below have been moved to polygon.f
 C remove last point if the curve is closed
@@ -154,7 +171,7 @@ C      z(np)=zint
       call invers
       write(4,*)z1,z2,z3,zrot1,zto0,zto1,angler,zrot2
       do 981 j=4,n-2,2
-  981 write(4,999)a(j),b(j),c(j)
+  981 write(4,*)a(j),b(j),c(j)
       zm=dcmplx(0.d0,0.d0)
       ierr=0
       do 982 j=1,n
@@ -166,7 +183,7 @@ C      z(np)=zint
       zm=z(j)
       x=dreal(z(j))
       y=dimag(z(j))
-  982 write(3,999)x,y
+  982 write(3,*)x,y
       if(ierr.eq.1)then
             write(*,*)' This occurred because two points are too close'
             write(*,*)' on the boundary (poly.dat). Their preimages on '
@@ -181,8 +198,27 @@ C      z(np)=zint
             write(*,*)' without doing Write Output. If the new points'
             write(*,*)' are sufficiently separated, the demo will work.'
       endif
-  999 format(3f25.15)
-      stop
+c  999 format(3f25.15)
+c      stop
+c
+      zparams(1)=z1
+      zparams(2)=z2
+      zparams(3)=z3
+      zparams(4)=zrot1
+      zparams(5)=zto0
+      zparams(6)=zto1
+      zparams(7)=angler
+      zparams(8)=zrot2
+c
+      k=1
+      do 985 j=4,n-2,2
+          write(4,*)a(j),b(j),c(j)
+          abc(k,1)=a(j)
+          abc(k,2)=b(j)
+          abc(k,3)=c(j)
+          k=k+1
+ 985  continue
+c
       end
 c
 c

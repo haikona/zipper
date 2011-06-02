@@ -27,7 +27,7 @@ c but deletes points outside the region.
       implicit double precision(a-h,o-y),complex*16(z)
       dimension z(10000)
       write(*,*)' Input should be in poly.dat'
-      open(1,file='./output/poly.dat',status='unknown')
+      open(1,file='poly.dat',status='unknown')
 c  The grid is (np+1) by (np+1) 
       write(*,*)' input m. The grid will be mxm.'
       read(*,*)m
@@ -86,7 +86,7 @@ c  The grid is (np+1) by (np+1)
       dy=dx
       y=y0-dy
       write(*,*)' Output will be in grid.dat'
-      open(2,file='./output/grid.dat',status='unknown')
+      open(2,file='grid.dat',status='unknown')
       do 3 k=1,np+1
          y=y+dy
          if(y.gt.ym)goto 50

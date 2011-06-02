@@ -46,7 +46,7 @@ c              occurances of 10001 with a larger number.
      1zto1,angler,zrot2,mm,n
    80 format(a55)
 c file with mapping parameters is poly.par
-      open(4,file='./output/poly.par',status='unknown')
+      open(4,file='poly.par',status='unknown')
       read(4,*)z1,z2,z3,zrot1,zto0,zto1,angler,zrot2
       do 981 j=1,10000
       jj=j*2+2
@@ -149,7 +149,7 @@ c-------------pull back points----------------------------------
             if(cdabs(zw-ztip).lt.rr2)then
                zwi=cdsqrt(zw/ztip-1.d0)
 c     to be sure of branch...:
-               if((dreal(zwi).lt.1.d-4).and.(dimag(zwi).lt.0.d0))zwi=-zwi
+              if((dreal(zwi).lt.1.d-4).and.(dimag(zwi).lt.0.d0))zwi=-zwi
 c               zt=zwi*zc1
                zt=(zc1+c2*zwi)*zwi
 c               zt=(zc1+c2*(1.d0+zc3*zwi)*zwi)*zwi

@@ -31,37 +31,57 @@ c  far fewer data points and hence greater speed with zipper.
 c
 c 
 c 
-      program polygon
+      subroutine polygon(zpts,n,intpt,mapprox,zz)
       implicit double precision(a-h,o-y),integer*4(i-n),complex*16(z)
-c  As written, this program is limited to 10000 vertices
-      dimension z(10002),zn(10002),xl(10002),zz(10002),jindex(10002)
-      character*55 filenm
-      write(*,*)' name of file with vertices then interior point?  '
-      read(*,80)filenm
-   80 format(a55)
-   99 format(2g25.15)
-   98 format(i5)
-      open(1,file=filenm,status='old')
-      do 1 j=1,10001
-         read(1,*,end=2)x,y
-         z(j)=dcmplx(x,y)
-    1 continue
-      write(*,*)' exceeded 10000 vertices'
-      stop
-    2 n=j-2
+c  As written, this program is limited to 90000 vertices
+      dimension z(90002),zn(90002),xl(90002),zz(90002),jindex(90002)
+c      character*55 filenm
+      dimension zpts(n)
+Cf2py intent(in) zpts, n, intpt, mapprox
+Cf2py intent(out) zz
+c      write(*,*)' name of file with vertices then interior point?  '
+c      read(*,80)filenm
+c   80 format(a55)
+c   99 format(2g25.15)
+c   98 format(i5)
+c
+c
+c      open(1,file=filenm,status='unknown')
+C fix for g77 in vista
+c       close(1)      
+c      open(1,file=filenm,status='old')
+c      do 1 j=1,90001
+c         read(1,*,end=2)x,y
+c         z(j)=dcmplx(x,y)
+c    1 continue
+c      nnnn=90000/5
+c      write(*,*)' too many vertices.'
+c      stop
+c    2 close(1)
+c      n=j-2
 C remove last point if the curve is closed
-      zint=z(n+1)
+c      zint=z(n+1)
+      if(n.gt.90000)then
+c         nnnn=90000/5
+         write(*,*)' too many vertices.'
+         stop
+      endif
+      do 1 j=1,n
+         z(j)=zpts(j)
+    1 continue
+      zint = intpt
+c
       if(cdabs(z(1)-z(n)).lt.1.d-14)then
          n=n-1
       endif
       norg=n
       np=n+1
-      write(*,*)' The program will put at least 5 points per edge'
-      write(*,*)' (counting endpoints) with vertices at odd points.' 
-      write(*,*)'  '
-      write(*,*)' Approx. lower bound on number of points on boundary?'
-      write(*,*)'    '
-      read(*,*)mapprox
+c      write(*,*)' The program will put at least 5 points per edge'
+c      write(*,*)' (counting endpoints) with vertices at odd points.' 
+c      write(*,*)'  '
+c      write(*,*)' Approx. lower bound on number of points on boundary?'
+c      write(*,*)'    '
+c      read(*,*)mapprox
       z(np)=z(1)
       zm=(z(2)+z(1))/2.d0
       distm=cdabs(zm-zint)
@@ -89,9 +109,15 @@ C remove last point if the curve is closed
          xl(j)=cdabs(zn(j+1)-zn(j))
          perim=perim+xl(j)
     3 continue
-      write(*,*)' name of file for points?  '
-      read(*,80)filenm
-      open(2,file=filenm,status='unknown')
+c      write(*,*)' name of file for points?  '
+c      read(*,80)filenm
+c
+c      filenm = outfile
+c
+c      open(2,file=filenm,status='unknown')
+C fix for g77 in vista
+c       close(2,status='delete')
+c       open(2,file=filenm,status='new')
       njs=0
       do 4 j=1,np
          nj=mapprox*xl(j)/perim
@@ -174,20 +200,24 @@ C count signed crossings of [z0,f(zint)] where f is an lft.
          jindex(jj)=n-jindex(jj)
   981 continue
   983 continue
-      zz(np)=zint
-      do 9 j=1,njs
-          x=dreal(zz(j))
-          y=dimag(zz(j))
-          write(2,99)x,y
-    9 continue
-      write(2,*)'  '
-      x=dreal(zint)
-      y=dimag(zint)
-      write(2,99)x,y
-      write(*,*)' index.dat=file with index for original data pts.'
-      open(3,file='./output/index.dat',status='unknown')
-      do 19 j=1,norg
-         write(3,98)jindex(j)
-   19 continue
-      stop
+c      zzero=dcmplx(0.d0,0.d0)
+      zz(np)=0
+c      do 9 j=1,njs
+c          x=dreal(zz(j))
+c          y=dimag(zz(j))
+c          write(2,99)x,y
+c    9 continue
+c      write(2,*)'  '
+c      x=dreal(zint)
+c      y=dimag(zint)
+c      write(2,99)x,y
+c      write(*,*)' index.dat=file with index for original data pts.'
+c      open(3,file='index.dat',status='unknown')
+C fix for g77 in vista
+c       close(3,status='delete')
+c       open(3,file='index.dat',status='new')
+c      do 19 j=1,norg
+c         write(3,98)jindex(j)
+c   19 continue
+c      stop
       end

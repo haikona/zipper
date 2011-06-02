@@ -29,7 +29,7 @@ c the polygonal line through the given points.
       dimension z(10002),zp(10000),xl(10002)
       write(*,*)'   '
       write(*,*)' Boundary of region should be in poly.dat'
-      open(3,file='./output/poly.dat',status='unknown')
+      open(3,file='poly.dat',status='unknown')
       pi=3.14159265358979324d0
       test=pi
       do 11 j=1,10000
@@ -54,7 +54,7 @@ c the polygonal line through the given points.
    25 continue
       if(wind0.lt.pi)test=-pi
       write(*,*)' File with data points should be called path.pts'
-      open(1,file='./output/path.pts',status='old')
+      open(1,file='path.pts',status='old')
       do 1 j=1,10001
          read(1,*,end=2)x,y
          zp(j)=dcmplx(x,y)
@@ -76,7 +76,7 @@ c the polygonal line through the given points.
     3 continue
       njsum=0
       write(*,*)' Output will be in path.dat'
-      open(2,file='./output/path.dat',status='unknown')
+      open(2,file='path.dat',status='unknown')
       do 4 j=1,nn-1
          nj=mapprox*xl(j)/perim
          if(nj.lt.4)nj=4
