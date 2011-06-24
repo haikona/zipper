@@ -63,13 +63,12 @@ c              occurances of 120001 and 120000 with larger numbers.
       subroutine zipper(zpts,m,intpt,zparams,abc,zpre)
 c
       implicit double precision(a-h,o-y),integer*4(i-n),complex*16(z)
-c      integer*4 m
-      dimension zpts(m),zparams(8),abc(120001,3),zpre(m)
+      dimension zpts(m),zparams(8),abc(m/2-2,3),zpre(m)
       common z(120001),a(120001),b(120001),c(120001),z1,z2,z3,zrot1,
      1zto0,zto1,angler,zrot2,n
 c      complex pts(m)
-Cf2py intent(in) pts, m, intpt
-Cf2py intent(out) zparams, abc, zpre
+Cf2py intent(in) zpts,m,intpt
+Cf2py intent(out) zparams,abc,zpre
 c
 c
 c  file containing data is called poly.dat
@@ -219,7 +218,7 @@ c Copying parameters and polygon preimage to output arrays
 c
       k=1
       do 985 j=4,n-2,2
-          write(4,*)a(j),b(j),c(j)
+c          write(4,*)a(j),b(j),c(j)
           abc(k,1)=a(j)
           abc(k,2)=b(j)
           abc(k,3)=c(j)

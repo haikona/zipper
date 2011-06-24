@@ -39,53 +39,90 @@ c
 c              This version is limited to 10000 boundary points including the 
 c              intermediate points.  To increase this limit, replace all
 c              occurances of 10001 with a larger number.
-      program inverse
+      subroutine inverse(zpts,k1,zparams,abc,k2,zout)
       implicit double precision(a-h,o-y),integer*4(i-n),complex*16(z)
-      character*55 filenm
+c      character*55 filenm
+      dimension zpts(k1),zparams(8),abc(k2,3),zout(k1)
       common z(10001),a(10001),b(10001),c(10001),z1,z2,z3,zrot1,zto0,
      1zto1,angler,zrot2,mm,n
-   80 format(a55)
-c file with mapping parameters is poly.par
-      open(4,file='poly.par',status='unknown')
-      read(4,*)z1,z2,z3,zrot1,zto0,zto1,angler,zrot2
-      do 981 j=1,10000
-      jj=j*2+2
-  981 read(4,999,end=57)a(jj),b(jj),c(jj)
-   57 n=jj
+Cf2py intent(in) zpts,k1,zparams,abc,k2
+Cf2py intent(out) zout
+c 
+c   80 format(a55)
+cc file with mapping parameters is poly.par
+c      open(4,file='poly.par',status='unknown')
+c      read(4,*)z1,z2,z3,zrot1,zto0,zto1,angler,zrot2
+c      do 981 j=1,10000
+c      jj=j*2+2
+c  981 read(4,999,end=57)a(jj),b(jj),c(jj)
+c   57 n=jj
+c
+c Copying parameters from zparams
+      z1=zparams(1)
+      z2=zparams(2)
+      z3=zparams(3)
+      zrot1=zparams(4)
+      zto0=zparams(5)
+      zto1=zparams(6)
+      angler=zparams(7)
+      zrot2=zparams(8)
+c
+c Copying parameters from abc
+      do 57 j=1,k2
+         jj=j*2+2
+         a(jj)=abc(j,1)
+         b(jj)=abc(j,2)
+         c(jj)=abc(j,3)
+  57  continue
+c
+c The number of vertices of the polygon is 2*(length of abc)+4
+      n=k2*2+4
       write(*,*)' number of vertices =',n
-  50  write(*,*)' name of file with points in the open region?  '
-      read(*,80)filenm
-      open(2,file=filenm,status='old')
-      write(*,*)' name of file for image of these points?  '
-      read(*,80)filenm
-      open(3,file=filenm,status='unknown')
-      do 65 j=1,10000
-          read(2,*,end=66)x,y
-          z(j)=dcmplx(x,y)
+c
+c  50  write(*,*)' name of file with points in the open region?  '
+c      read(*,80)filenm
+c      open(2,file=filenm,status='old')
+c      write(*,*)' name of file for image of these points?  '
+c      read(*,80)filenm
+c      open(3,file=filenm,status='unknown')
+c      do 65 j=1,10000
+c          read(2,*,end=66)x,y
+c          z(j)=dcmplx(x,y)
+c   65 continue
+c
+c Copying input data from zpts
+      do 65 j=1,k1
+          z(j)=zpts(j)
    65 continue
-      write(*,*)' Exceeded 10000 pts. Split file or recompile'
-      write(*,*)' Will compute image of first 10000 points'
-   66 mm=j-1
-      write(*,*)' number of data points=',mm
+c
+c      write(*,*)' Exceeded 10000 pts. Split file or recompile'
+c      write(*,*)' Will compute image of first 10000 points'
+c   66 mm=j-1
+      mm=k1
+      write(*,*)' number of data points=',k1
       call invert
-      do 984 j=1,mm
+c
+c Copying output to zout
+      do 984 j=1,k1
          x=dreal(z(j))
          y=dimag(z(j))
 c points outside the region will be mapped to points outside the disk.
 c But the map is not quite 1-1: the last step of mapping part of
 c a circle to the disk is not 1-1 on the outside.
-c thus we will just delete these points.
+c thus we will set these points to NaN.
          if(x*x+y*y.gt.(1.d0+1.d-8))then
             write(*,*)'  '
             write(*,*)' z(j) outside region, so pullback outside disk,'
-            write(*,*)' and will be eliminated from output.'
+            write(*,*)' and will be set to NaN.'
             write(*,*)' j=',j,'   inverse of z(j)=', z(j)
-            goto 984
+            z(j)=0.d0
+c            goto 984
          endif
-         write(3,999)x,y
+         zout(j)=z(j)
+c         write(3,999)x,y
   984 continue
-  999 format(3f25.15)
-      stop
+c  999 format(3f25.15)
+c      stop
       end
 c
 c
