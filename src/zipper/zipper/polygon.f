@@ -31,13 +31,13 @@ c  far fewer data points and hence greater speed with zipper.
 c
 c 
 c 
-      subroutine polygon(zpts,n,intpt,mapprox,zz)
+      subroutine polygon(zpts,n,zintpt,mapprox,zz)
       implicit double precision(a-h,o-y),integer*4(i-n),complex*16(z)
 c  As written, this program is limited to 90000 vertices
       dimension z(90002),zn(90002),xl(90002),zz(90002),jindex(90002)
 c      character*55 filenm
       dimension zpts(n)
-Cf2py intent(in) zpts, n, intpt, mapprox
+Cf2py intent(in) zpts, n, zintpt, mapprox
 Cf2py intent(out) zz
 c      write(*,*)' name of file with vertices then interior point?  '
 c      read(*,80)filenm
@@ -69,7 +69,7 @@ c         nnnn=90000/5
       do 1 j=1,n
          z(j)=zpts(j)
     1 continue
-      zint = intpt
+      zint = zintpt
 c
       if(cdabs(z(1)-z(n)).lt.1.d-14)then
          n=n-1

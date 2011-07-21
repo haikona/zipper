@@ -20,26 +20,37 @@ C
 C
 C
 C
-      program imagegr
+      subroutine imagegr(zpoly,k1,zintpt,m,zout)
 c This program reads in the boundary data from poly.dat and computes 
 c a grid of mxm  points for mapping by inverse,
 c but deletes points outside the region.
       implicit double precision(a-h,o-y),complex*16(z)
-      dimension z(10000)
-      write(*,*)' Input should be in poly.dat'
-      open(1,file='poly.dat',status='unknown')
-c  The grid is (np+1) by (np+1) 
-      write(*,*)' input m. The grid will be mxm.'
-      read(*,*)m
+      dimension z(100000),zpoly(k1),zout(100000)
+Cf2py intent(in) zpoly,k1,m
+Cf2py intent(out) zout
+c
+c      write(*,*)' Input should be in poly.dat'
+c      open(1,file='poly.dat',status='unknown')
+cc  The grid is (np+1) by (np+1) 
+c      write(*,*)' input m. The grid will be mxm.'
+c      read(*,*)m
+c
       np=m-1
       xnp=np
       pi=3.14159265358979324d0
-      do 1 j=1,10000
-         read(1,*,end=2)x,y
-         z(j)=dcmplx(x,y)
+c      do 1 j=1,10000
+c         read(1,*,end=2)x,y
+c         z(j)=dcmplx(x,y)
+c    1 continue
+c    2 n=j-2
+c      z0=z(n+1)
+c
+      do 1 j=1,k1
+         z(j)=zpoly(j)
     1 continue
-    2 n=j-2
-      z0=z(n+1)
+      n=k1
+      z0=zintpt
+c
       wind0=0.d0
       xmin=1.d+99
       xmax=-1.d+99
@@ -85,8 +96,11 @@ c  The grid is (np+1) by (np+1)
       dx=xl/xnp
       dy=dx
       y=y0-dy
-      write(*,*)' Output will be in grid.dat'
-      open(2,file='grid.dat',status='unknown')
+c      write(*,*)' Output will be in grid.dat'
+c      open(2,file='grid.dat',status='unknown')
+c
+      k2=1
+c
       do 3 k=1,np+1
          y=y+dy
          if(y.gt.ym)goto 50
@@ -115,10 +129,17 @@ c  The grid is (np+1) by (np+1)
          dthet=dimag(cdlog(zmp/zmo))
          if(dabs(dabs(dthet)-pi).lt.1.d-12)goto 4
          wind=wind+dthet
-         if(wind.gt.test)write(2,999)x,y
+c         if(wind.gt.test)write(2,999)x,y
+c
+         if(wind.gt.test)then
+            zout(k2)=dcmplx(x,y)
+            k2=k2+1
+         endif
+c
     4    continue
     3 continue
-   50 stop
-  999 format(2f25.15)
+c   50 stop
+c  999 format(2f25.15)
+   50 continue
       end
 

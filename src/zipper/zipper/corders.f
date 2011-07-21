@@ -22,26 +22,37 @@ C
 C
 c  This program orders points from cgrids.f for plotting (can be applied
 c   to images via a conformal map.)
-      program corders
+      subroutine corders(zpts,k1,ngen,nsl,zout)
       implicit double precision(a-h,o-y),complex*16(z)
       dimension x(200000),y(200000),x1(200000),y1(200000)
-      character*55 filenm
-      write(*,*)' number of generations?'
-      read(*,*)ngen
-      write(*,*)' number of sublevels?'
-      read(*,*)nsl
-      write(*,*)' name of file with data?'
-      read(*,80)filenm
-   80 format(a55)
-      open(2,file=filenm,status='unknown')
-      write(*,*)' name of file for ordered data?'
-      read(*,80)filenm
-      open(3,file=filenm,status='unknown')
-      do 11 i=1,200000
-         read(2,*,end=12)x(i),y(i)
+      dimension zpts(k1),zout(200000)
+Cf2py intent(in) ngen,nsl,zpts,k1
+Cf2py intent(out) zout
+c
+c      character*55 filenm
+c      write(*,*)' number of generations?'
+c      read(*,*)ngen
+c      write(*,*)' number of sublevels?'
+c      read(*,*)nsl
+c      write(*,*)' name of file with data?'
+c      read(*,80)filenm
+c   80 format(a55)
+c      open(2,file=filenm,status='unknown')
+c      write(*,*)' name of file for ordered data?'
+c      read(*,80)filenm
+c      open(3,file=filenm,status='unknown')
+c      do 11 i=1,200000
+c         read(2,*,end=12)x(i),y(i)
+c   11 continue
+c   12 nnn=i-1
+c      write(*,*)' no. data points',nnn
+c
+      do 11 i=1,k1
+         x(i)=realpart(zpts(i))
+         y(i)=imagpart(zpts(i))
    11 continue
-   12 nnn=i-1
-      write(*,*)' no. data points',nnn
+      nnn=k1
+c
       i=0
       ngen1=ngen-1
       lend=32*nsl
@@ -78,11 +89,13 @@ c   to images via a conformal map.)
          lend=lend*2
     1 continue
       nnn=i
-      write(*,*)'no. pts. =',nnn
-      write(3,99)(x1(i),y1(i),i=1,nnn)
-   99 format(2f25.15)
-      stop
+c      write(*,*)'no. pts. =',nnn
+c      write(3,99)(x1(i),y1(i),i=1,nnn)
+c   99 format(2f25.15)
+c      stop
+c
+      do 12 i=1,nnn
+         zout(i)=dcmplx(x1(i),y1(i))
+   12 continue
+c
       end
-       
-
-

@@ -22,23 +22,27 @@ C
 C
 c  This computes the Carleson grid with refined squares in the top half
 c   of each box. Points are not in correct order for plotting.
-      program cgrids
+      subroutine cgrids(ngen,nsl,zout)
       implicit double precision(a-h,o-y),complex*16(z)
+      dimension zout(100000)
       dimension x(100000),y(100000)
-      character*55 filenm
-      write(*,*)' number of generations?'
-      read(*,*)ngen
-      write(*,*)' number of sublevels?'
-      read(*,*)nsl
+Cf2py intent(in) ngen,nsl
+Cf2py intent(out) zout
+c
+c      character*55 filenm
+c      write(*,*)' number of generations?'
+c      read(*,*)ngen
+c      write(*,*)' number of sublevels?'
+c      read(*,*)nsl
       nnsl=nsl
 c      if(nsl.eq.0)then
 c          write(*,*)'  Program requires sublevels geq 1'
 c          stop
 c      endif
-      write(*,*)' name of file for data?'
-      read(*,80)filenm
-   80 format(a55)
-      open(2,file=filenm,status='unknown')
+c      write(*,*)' name of file for data?'
+c      read(*,80)filenm
+c   80 format(a55)
+c      open(2,file=filenm,status='unknown')
       pi=3.1415926535898d0
       rad=1.d0-pi/4.d0
       i=0
@@ -72,10 +76,15 @@ c      endif
          y(i)=rad1*dsin(dtheta*l)
     4 continue
       nnn=i
-      write(*,*)' number of points =',nnn
-      write(2,99)(x(i),y(i),i=1,nnn)
-   99 format(2f25.15)
-      stop
+c
+      do 5 j=1,nnn
+         zout(j)=dcmplx(x(j),y(j))
+    5 continue
+c
+c      write(*,*)' number of points =',nnn
+c      write(2,99)(x(i),y(i),i=1,nnn)
+c   99 format(2f25.15)
+c      stop
       end
        
 

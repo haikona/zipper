@@ -104,23 +104,27 @@ c   66 mm=j-1
 c
 c Copying output to zout
       do 984 j=1,k1
-         x=dreal(z(j))
-         y=dimag(z(j))
+         zout(j)=z(j)
+  984 continue
+c
+c      do 984 j=1,k1
+c         x=dreal(z(j))
+c         y=dimag(z(j))
 c points outside the region will be mapped to points outside the disk.
 c But the map is not quite 1-1: the last step of mapping part of
 c a circle to the disk is not 1-1 on the outside.
 c thus we will set these points to NaN.
-         if(x*x+y*y.gt.(1.d0+1.d-8))then
-            write(*,*)'  '
-            write(*,*)' z(j) outside region, so pullback outside disk,'
-            write(*,*)' and will be set to NaN.'
-            write(*,*)' j=',j,'   inverse of z(j)=', z(j)
-            z(j)=0.d0
+c         if(x*x+y*y.gt.(1.d0+1.d-8))then
+c            write(*,*)'  '
+c            write(*,*)' z(j) outside region, so pullback outside disk,'
+c            write(*,*)' and will be set to NaN.'
+c            write(*,*)' j=',j,'   inverse of z(j)=', z(j)
+c            z(j)=0.d0
 c            goto 984
-         endif
-         zout(j)=z(j)
+c         endif
+c         zout(j)=z(j)
 c         write(3,999)x,y
-  984 continue
+c  984 continue
 c  999 format(3f25.15)
 c      stop
       end

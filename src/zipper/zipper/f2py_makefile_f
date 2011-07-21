@@ -1,0 +1,2 @@
+f2py -m -c zipper_routines polygon.f zipper_and_inverse.f forward.f only: polygon zipper forward inverse :
+f2py -m -c zipper_routines polygon.f zipper_and_inverse.f forward.f imagegr.f cgrids.f corders.f only: polygon zipper forward inverse imagegr cgrids corders :
