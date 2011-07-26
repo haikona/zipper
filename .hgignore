@@ -10,6 +10,8 @@ syntax: glob
 *.dat
 *.pre
 *.tmp
+*.old
+*.bkup
 
 .DS_Store
 
