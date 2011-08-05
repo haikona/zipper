@@ -134,6 +134,7 @@ c       open(2,file=filenm,status='new')
             m=jclose-1-n+j
          endif
          jindex(m)=njs
+c         write(*,*)j,zn(j)
          zz(njs)=zn(j)
          do 5 k=1,nj-1
             njs=njs+1
