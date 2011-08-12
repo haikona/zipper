@@ -461,7 +461,9 @@ c Copying parameters from abc
 c
 c The number of vertices of the polygon is 2*(length of abc)+4
       n=k2*2+4
-      write(*,*)' number of vertices =',n
+c
+c      write(*,*)' number of vertices =',n
+c
 c
 c  50  write(*,*)' name of file with points in the open region?  '
 c      read(*,80)filenm
@@ -483,7 +485,7 @@ c      write(*,*)' Exceeded 10000 pts. Split file or recompile'
 c      write(*,*)' Will compute image of first 10000 points'
 c   66 mm=j-1
       mm=k1
-      write(*,*)' number of data points=',k1
+c      write(*,*)' number of data points=',k1
       call invert
 c
 c Copying output to zout

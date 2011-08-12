@@ -73,7 +73,9 @@ c Copying parameters from abc
 c
 c The number of vertices of the polygon is 2*(length of abc)+4
       n=k2*2+4
-      write(*,*)' number of vertices =',n
+c
+c      write(*,*)' number of vertices =',n
+c
 c      write(*,*)' type 1 if you wish to evaluate at prevertices and',
 c     1' at intermediate points'
 c      write(*,*)' type 0 to skip'
@@ -157,7 +159,7 @@ c
 c      write(*,*)' Exceeded 120000 pts. Split file or recompile'
 c      write(*,*)' Will compute image of first 120000 points'
 c   66 mm=j-1
-      write(*,*)' number of data points=',k1
+c      write(*,*)' number of data points=',k1
       call eval(k1)
 c      do 984 j=1,k1
 c         x=dreal(z(j))

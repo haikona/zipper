@@ -31,14 +31,14 @@ c  far fewer data points and hence greater speed with zipper.
 c
 c 
 c 
-      subroutine polygon(zpts,n,zintpt,mapprox,zz)
+      subroutine polygon(zpts,n,zintpt,mapprox,zz,njs)
       implicit double precision(a-h,o-y),integer*4(i-n),complex*16(z)
 c  As written, this program is limited to 90000 vertices
       dimension z(90002),zn(90002),xl(90002),zz(90002),jindex(90002)
 c      character*55 filenm
       dimension zpts(n)
 Cf2py intent(in) zpts, n, zintpt, mapprox
-Cf2py intent(out) zz
+Cf2py intent(out) zz, njs
 c      write(*,*)' name of file with vertices then interior point?  '
 c      read(*,80)filenm
 c   80 format(a55)
@@ -141,7 +141,7 @@ c         write(*,*)j,zn(j)
             zz(njs)=zz(njs-1)+zd
     5    continue
     4 continue
-      write(*,*)' number of boundary points =',njs
+c      write(*,*)' number of boundary points =',njs
       n=njs
       np=n+1
 C here we test that the interior point corresponds to the region
@@ -164,7 +164,7 @@ C count signed crossings of [z0,f(zint)] where f is an lft.
       zrot2=cdexp(dcmplx(0.d0,-rota))
       zold=-z0*zrot2
       xf=dreal(zt*zrot2)
-      do 199 j=4,np
+      do 199 j=4,njs
         znew=(((zz(j)-zz(3))/(zz(j)-zz(1)))*zrot1 -z0)*zrot2
         aimg=dimag(zold)
         bimg=dimag(znew)
@@ -202,7 +202,7 @@ C count signed crossings of [z0,f(zint)] where f is an lft.
   981 continue
   983 continue
 c      zzero=dcmplx(0.d0,0.d0)
-      zz(np)=0
+c      zz(np)=dcmplx(0.d0,0.d0)
 c      do 9 j=1,njs
 c          x=dreal(zz(j))
 c          y=dimag(zz(j))
