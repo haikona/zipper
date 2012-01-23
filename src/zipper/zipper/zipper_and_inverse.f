@@ -65,7 +65,7 @@ c
       implicit double precision(a-h,o-y),integer*4(i-n),complex*16(z)
       dimension zpts(m),zparams(8),abc(m/2-2,3),zpre(m)
       common z(120001),a(120001),b(120001),c(120001),z1,z2,z3,zrot1,
-     1zto0,zto1,angler,zrot2,n
+     1zto0,zto1,angler,zrot2,mm,n
 c      complex pts(m)
 Cf2py intent(in) zpts,m,zintpt
 Cf2py intent(out) zparams,abc,zpre
@@ -236,7 +236,7 @@ c        z(n+1) mapped to 0, z(1) mapped to 1
       subroutine invers
       implicit double precision(a-h,o-y),integer*4(i-n),complex*16(z)
       common z(120001),a(120001),b(120001),c(120001),z1,z2,z3,zrot1,
-     1zto0,zto1,angler,zrot2,n
+     1zto0,zto1,angler,zrot2,mm,n
       pi=3.14159265358979324d0
       acc=1.d-14
 c  acc should be at least machine eps **.75
@@ -427,8 +427,12 @@ c              occurances of 10001 with a larger number.
       implicit double precision(a-h,o-y),integer*4(i-n),complex*16(z)
 c      character*55 filenm
       dimension zpts(k1),zparams(8),abc(k2,3),zout(k1)
-      common z(10001),a(10001),b(10001),c(10001),z1,z2,z3,zrot1,zto0,
-     1zto1,angler,zrot2,mm,n
+      common z(120001),a(120001),b(120001),c(120001),z1,z2,z3,zrot1,
+     1zto0,zto1,angler,zrot2,mm,n
+c
+c      common z(10001),a(10001),b(10001),c(10001),z1,z2,z3,zrot1,zto0,
+c     1zto1,angler,zrot2,mm,n
+c
 Cf2py intent(in) zpts,k1,zparams,abc,k2
 Cf2py intent(out) zout
 c 
@@ -518,8 +522,8 @@ c      computes map from region to disk
 c
       subroutine invert
       implicit double precision(a-h,o-y),integer*4(i-n),complex*16(z)
-      common z(10001),a(10001),b(10001),c(10001),z1,z2,z3,zrot1,zto0,
-     1zto1,angler,zrot2,mm,n
+      common z(120001),a(120001),b(120001),c(120001),z1,z2,z3,zrot1,
+     1zto0,zto1,angler,zrot2,mm,n
       pi=3.14159265358979324d0
       acc=1.d-12
       zi=dcmplx(0.d0,1.d0)
