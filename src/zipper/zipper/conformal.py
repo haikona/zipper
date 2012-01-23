@@ -4,7 +4,7 @@ to the unit disk.
 
 AUTHOR:
 
-- Simon Spicer -- 2011
+- Simon Spicer -- 2012
 
 TESTS:
 
@@ -40,9 +40,8 @@ from matplotlib.colors import hsv_to_rgb
 
 class Conformal:
     """
-    The Conformal class, containing a conformal map from the interior of the unit disk
-    to a given polygon, and a map from the exterior of the disk to the exterior of the
-    polygon.
+    The Conformal class, containing a conformal map from the unit disk to a region
+    defined by a Jordan curve passing through supplied data points.
 
     INPUT: 
         
@@ -52,17 +51,19 @@ class Conformal:
                                  connected polygon in RR^2;
                                 or the name of a file containing data that can be
                                  parsed into the above format
-        - ''interior_point''  - Either a point in the interior of the polygon, to
+        - ''interior_point''  - Either a point in the interior of the region, to
                                  which 0 is mapped in the forward conformal map;
                                 or the string 'from_data', in which case the interior 
                                  point is taken to be last point in the data file/array
         - ''N''               - The approximate number of points to be used on the
-                                 boundary of the polygon in the conformal map. Use more
-                                 points for higher precision.
+                                 boundary of the region in the conformal map. Use more
+                                 points for a curve that more closely approximates
+                                 the polygon whose vertices are given by the supplied
+                                 data.
         - ''preprocessor''    - Boolean flag, switching the preprocessor on or off
                                  (default is on). The preprocessor reorders the input
-                                 for and adds interpolating points for increased
-                                 numerical stability.
+                                 and adds interpolating points for increased numerical
+                                 stability.
         - ''normalization''   - Boolean flag; default is True.
                                 If True, the map is normalized so that the derivative
                                  of the forward map at the origin is positive real;
@@ -168,6 +169,20 @@ class Conformal:
         imaginary tuples. Allows for the inclusion of the interior point
         at the end if desired.
 
+        INPUT:
+
+            - ''filename''        - The name of the file to be written to.
+                                     Extension must be supplied. If file already
+                                     exists it is written over.
+
+            - ''data''            - The data attached to self to be written to
+                                     file.
+
+            - ''interior_point''  - Boolean flag, default False. If set to True,
+                                     a blank line followed by the interior point
+                                     of self is added to the end of the written
+                                     data file.
+
         OUTPUT:
 
         None.
@@ -196,11 +211,19 @@ class Conformal:
             f.write(str(self._interior_point.real) + '\t' + str(self._interior_point.imag))
             f.close()
 
-    def set_normalization(self, s):
+    def set_normalization(self, state):
         """
         Turn the conformal mapnormalization on or off. Normalization is
         stored as a complex double of magnitude 1, by which data sent into
         the forward map is premultiplied.
+
+        INPUT:
+
+            - ''state''    - Boolean flag. If True, self._normalization is
+                              set so that the derivative at the origin is
+                              positive real. If False, self._normalization
+                              is set so that 1+0j is sent to the first
+                              input data point under the forward map.
 
         OUTPUT:
 
@@ -210,7 +233,7 @@ class Conformal:
         
         """
 
-        if s:
+        if state:
             # Get derivative of unnormalized conformal map at origin
             a1 = self._get_forward_map_derivative_at_origin()
             # Set normalization to the -argument of a1 
