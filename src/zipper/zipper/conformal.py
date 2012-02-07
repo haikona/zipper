@@ -37,6 +37,64 @@ import numpy as np
 import zipper_routines
 import pylab
 from matplotlib.colors import hsv_to_rgb
+from copy import deepcopy
+
+# Input data parsing: either a filename string or a numpy array
+def load_data(data):
+    if type(data)==str:
+        try:
+            A      = np.loadtxt(data)
+            if np.isrealobj(A) and len(A.shape)==2 and A.shape[1]==2:
+                return A[:,0] +1j*A[:,1]
+            elif np.iscomplexobj(data) and len(data.shape)==1:
+                return A
+            else:
+                raise IOError("Data file must contain a 1-d complex array"\
+                                      +" or an array of real pairs.")
+        except:
+            raise IOError("Please enter a valid file name.")
+    elif type(data==np.ndarray):
+        if np.isrealobj(data) and len(data.shape)==2 and data.shape[1]==2:
+            return data[:,0] +1j*data[:,1]
+        elif np.iscomplexobj(data) and len(data.shape)==1:
+            return data
+        else:
+            raise IOError("Input must be a 1-d complex array"\
+                          +" or an array of real pairs.")
+    else:
+        raise IOError("Input must be a valid file name or Numpy array.")
+
+
+def hue(X):
+    """
+    Returns an array of triples corresponding to the hue of the
+    phase of the input array. Useful when plotting points on the
+    complex plane coloured by phase.
+
+    INPUT:
+
+    - ''X'' - 1d complex Numpy array of points
+
+    OUTPUT:
+
+    - An n*3 real Numpy array of values in the range [0,1].
+
+    EXAMPLES:: 
+
+        sage: X = np.array([1.,1.*1j,-1.,-1.*1j])
+        C = Conformal(X,interior_point=0)
+        sage: C.hue(X)
+        array([[ 1. ,  0. ,  0. ],
+        [ 0.5,  1. ,  0. ],
+        [ 0. ,  1. ,  1. ],
+        [ 0.5,  0. ,  1. ]])
+
+    """
+    V = np.angle(-X)
+    V = (V/(2*np.pi) + 0.5)
+    W = np.array((V,np.ones(V.shape),np.ones(V.shape))).T.reshape(-1,1,3)
+    return hsv_to_rgb(W).reshape(-1,3)
+
 
 class Conformal:
     """
@@ -92,29 +150,30 @@ class Conformal:
 #        self._infinity = np.complex(2**128,0)
         self._interior_point = None
 
+        B = load_data(data)
         # Input data parsing: either a filename string or a numpy array
-        if type(data)==str:
-            try:
-                A      = np.loadtxt(data)
-                if np.isrealobj(A) and len(A.shape)==2 and A.shape[1]==2:
-                    B      = A[:,0] +1j*A[:,1]
-                elif np.iscomplexobj(data) and len(data.shape)==1:
-                    B      = A
-                else:
-                    raise IOError("Data file must contain a 1-d complex array"\
-                                      +" or an array of real pairs.")
-            except:
-                raise IOError("Please enter a valid file name.")
-        elif type(data==np.ndarray):
-            if np.isrealobj(data) and len(data.shape)==2 and data.shape[1]==2:
-                B      = data[:,0] +1j*data[:,1]
-            elif np.iscomplexobj(data) and len(data.shape)==1:
-                B      = data
-            else:
-                raise IOError("Input must be a 1-d complex array"\
-                              +" or an array of real pairs.")
-        else:
-            raise IOError("Input must be a valid file name or Numpy array.")
+#        if type(data)==str:
+#            try:
+#                A      = np.loadtxt(data)
+#                if np.isrealobj(A) and len(A.shape)==2 and A.shape[1]==2:
+#                    B      = A[:,0] +1j*A[:,1]
+#                elif np.iscomplexobj(data) and len(data.shape)==1:
+#                    B      = A
+#                else:
+#                    raise IOError("Data file must contain a 1-d complex array"\
+#                                      +" or an array of real pairs.")
+#            except:
+#                raise IOError("Please enter a valid file name.")
+#        elif type(data==np.ndarray):
+#            if np.isrealobj(data) and len(data.shape)==2 and data.shape[1]==2:
+#                B      = data[:,0] +1j*data[:,1]
+#            elif np.iscomplexobj(data) and len(data.shape)==1:
+#                B      = data
+#            else:
+#                raise IOError("Input must be a 1-d complex array"\
+#                              +" or an array of real pairs.")
+#        else:
+#            raise IOError("Input must be a valid file name or Numpy array.")
 
         # Interior point parsing
         if interior_point=="from_data":
@@ -522,32 +581,68 @@ class Conformal:
 #        E = np.array((E1,E2))
 #        return E
 
-    def hue(self, X):
-        """
-        Returns an array of triples corresponding to the hue of the
-        phase of the input array. Useful when plotting points on the
-        complex plane coloured by phase.
+    
+######################################
 
-        INPUT:
+class ConformalChain:
 
-        - ''X'' - 1d complex Numpy array of points
+    def __init__(self, data, N=200, preprocessor=True):
+        
+        self._infinity = np.complex(2**300,0)
 
-        OUTPUT:
+        self._input_data_raw = []
+        for d in data:
+            self._input_data_raw.append(load_data(d))
 
-        - An n*3 real Numpy array of values in the range [0,1].
+        # Format data using zipper_routines.polygon()
+        self._input_data = []
+        if preprocessor:
+            for d in self._input_data_raw:
+                B,njs    = zipper_routines.polygon(d[:-1], self._infinity, N)
+                self._input_data.append(np.append(B[:njs],d[-1]))
+        else: self._input_data = self._input_data_raw
 
-        EXAMPLES:: 
+        self._num_regions = len(self._input_data)
 
-            sage: X = np.array([1.,1.*1j,-1.,-1.*1j])
-            C = Conformal(X,interior_point=0)
-            sage: C.hue(X)
-            array([[ 1. ,  0. ,  0. ],
-            [ 0.5,  1. ,  0. ],
-            [ 0. ,  1. ,  1. ],
-            [ 0.5,  0. ,  1. ]])
+        self._transformed_data = deepcopy(self._input_data)
+        self._conformal_maps = []
+        self._normalizations = []
+        for j in range(self._num_regions):
+            C = Conformal(self._transformed_data[j][:-1],\
+                          interior_point=np.complex(2**300,0),\
+                          preprocessor=False,normalization=False)
+            self._conformal_maps.append(C)
 
-        """
-        V = np.angle(-X)
-        V = (V/(2*np.pi) + 0.5)
-        W = np.array((V,np.ones(V.shape),np.ones(V.shape))).T.reshape(-1,1,3)
-        return hsv_to_rgb(W).reshape(-1,3)
+            S0 = np.array([1e6,-1e6,1j*1e6,-1j*1e6],dtype=np.complex128)
+            S1 = 1/C.inverse_map(S0)
+            c0 = np.sum(S1)/4
+            c1 = np.sum(S1/S0)/4
+#            print(c0,c1)
+            self._normalizations.append((c0,c1))
+
+            for k in range(self._num_regions):
+                if k==j:
+                    d = np.append(1/C.polygon_preimage(),np.complex(0,0))
+                else:
+                    d = 1/C.inverse_map(self._transformed_data[k])
+                d = (d - c0)/c1
+                self._transformed_data[k] = d
+
+
+    def inverse_map(self,data):
+        
+        d = data
+        for j in range(self._num_regions):
+            d = self._conformal_maps[j].inverse_map(d)
+            d = (1/d - self._normalizations[j][0])/self._normalizations[j][1]
+        
+        return d
+
+    def forward_map(self,data):
+        
+        d = data
+        for j in range(self._num_regions)[::-1]:
+            d = 1/(d*self._normalizations[j][1] + self._normalizations[j][0])
+            d = self._conformal_maps[j].forward_map(d)
+
+        return d
