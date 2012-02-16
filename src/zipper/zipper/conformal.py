@@ -65,6 +65,47 @@ def load_data(data):
         raise IOError("Input must be a valid file name or Numpy array.")
 
 
+def grid_exterior(L,m=100,D=1.5):
+    
+    if L==[]:
+        raise InputError("Input list must be nonempty.")
+    
+    xmin=np.real(L[0][0])
+    xmax=xmin
+    ymin=np.imag(L[0][0])
+    ymax=ymin
+    
+    for A in L:
+        X = np.real(A[:-1])
+        Y = np.imag(A[:-1])
+        x1 = np.min(X)
+        x2 = np.max(X)
+        y1 = np.min(Y)
+        y2 = np.max(Y)
+        
+        xmin = np.min([xmin,x1])
+        xmax = np.max([xmax,x2])
+        ymin = np.min([ymin,y1])
+        ymax = np.max([ymax,y2])
+
+    r = D/2*np.max([xmax-xmin,ymax-ymin])
+    
+    xleft  = (xmin+xmax)/2 - r
+    xright = (xmin+xmax)/2 + r
+    yleft  = (ymin+ymax)/2 - r
+    yright = (ymin+ymax)/2 + r
+    
+    X = np.arange(xleft,xright,(xright-xleft)/m,dtype=np.float64)
+    Y = np.arange(yleft,yright,(yright-yleft)/m,dtype=np.float64)
+    XX,YY = np.meshgrid(X,Y)
+    G = (XX+1j*YY).flatten()
+    
+    for A in L:
+        G = np.trim_zeros(zipper_routines.gridext(G,A[:-1],A[-1]))
+        
+    return G
+
+
 def hue(X):
     """
     Returns an array of triples corresponding to the hue of the
@@ -473,10 +514,10 @@ class Conformal:
         """
         return self._polygon_preimage
         
-    def grid(self, point_density=50): #, exterior_map=False):
+    def grid(self, point_density=50): #, exterior=False):
         """
         Returns a 1d complex Numpy array of points evenly spaced in the
-        interior of the polygon.
+        interior or exterior of the polygon.
 
         INPUTS:
 
@@ -586,6 +627,14 @@ class Conformal:
 
 class ConformalChain:
 
+    def _roundness_(self,A):
+
+        c1 = np.min(np.abs(A[:-1]-A[-1]))
+        c2 = np.max(np.abs(A[:-1]-A[-1]))
+#        print(c1,c2)
+        return c2/c1
+
+
     def __init__(self, data, N=200, preprocessor=True):
         
         self._infinity = np.complex(2**300,0)
@@ -607,7 +656,17 @@ class ConformalChain:
         self._transformed_data = deepcopy(self._input_data)
         self._conformal_maps = []
         self._normalizations = []
+
+#        R = [self._roundness_(d) for d in self._transformed_data]
+#        print(R)
+#        m = max(R)
+#        j = R.index(m)
+#        print(j)
+
+#        j = 0
         for j in range(self._num_regions):
+#        while m-1 >= np.float64(1e-2):
+#        for _ in range(1):
             C = Conformal(self._transformed_data[j][:-1],\
                           interior_point=np.complex(2**300,0),\
                           preprocessor=False,normalization=False)
@@ -628,11 +687,19 @@ class ConformalChain:
                 d = (d - c0)/c1
                 self._transformed_data[k] = d
 
+#            R = [self._roundness_(d) for d in self._transformed_data]
+#            print(R)
+#            m = max(R)
+#            j = R.index(m)
+#            j = (j+1)%4
+
+        self._num_maps = len(self._conformal_maps)
+
 
     def inverse_map(self,data):
         
         d = data
-        for j in range(self._num_regions):
+        for j in range(self._num_maps):
             d = self._conformal_maps[j].inverse_map(d)
             d = (1/d - self._normalizations[j][0])/self._normalizations[j][1]
         
@@ -641,7 +708,7 @@ class ConformalChain:
     def forward_map(self,data):
         
         d = data
-        for j in range(self._num_regions)[::-1]:
+        for j in range(self._num_maps)[::-1]:
             d = 1/(d*self._normalizations[j][1] + self._normalizations[j][0])
             d = self._conformal_maps[j].forward_map(d)
 
