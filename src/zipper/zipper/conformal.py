@@ -1,5 +1,5 @@
 """
-Conformal Mapping from an arbitrary polygon in the complex plane
+Conformal Mapping from a data-defined region in the complex plane
 to the unit disk.
 
 AUTHOR:
@@ -17,8 +17,7 @@ Pickling test::
 """
 
 ########################################################################
-#       Copyright (C) 2011 William Stein <wstein@gmail.com>
-#       Copyright (C) 2011 Simon Spicer  <haikona@gmail.com>
+#       Copyright (C) 2012 Simon Spicer  <haikona@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -41,6 +40,23 @@ from copy import deepcopy
 
 # Input data parsing: either a filename string or a numpy array
 def load_data(data):
+    """
+    Loads and correctly formatting data into a 1-D complex Numpy array.
+
+    INPUT:
+
+    - ''data'' - Either the string of a file name of a saved Numpy 
+                  array, or the Numpy array itself. The array must
+                  either be a 1-D array of complex values, or an nx2
+                  array of real values.
+
+    OUTPUT:
+
+     A 1-D complex Numpy array.
+
+    EXAMPLES::
+
+    """
     if type(data)==str:
         try:
             A      = np.loadtxt(data)
@@ -66,10 +82,35 @@ def load_data(data):
 
 
 def grid_exterior(L,m=100,D=1.5):
-    
+    """
+    Creates an array of evenly spaced points on the exterior of a list
+     of data-defined regions.
+
+    INPUT:
+
+     - ''L'' - A list of 1-D complex Numpy arrays. The points in the
+                arrays must be orientated in a clockwise direction, and
+                an interior point must be supplied as the last point of
+                each array.
+
+    - ''m''  - Positive integer, default 100. The point density of the
+                array (i.e. the array will be 100x100 before points are
+                cut out).
+
+    - ''D''  - Positive real number, default 1.5. The diameter of the 
+                array of returned points relative to the diameter of
+                the supplied data (i.e. the max vertical/horizontal
+                distance between input data points).
+
+    OUTPUT:
+
+     A 1-D complex array of points.
+
+    """
     if L==[]:
         raise InputError("Input list must be nonempty.")
     
+    # Compute input data bounds
     xmin=np.real(L[0][0])
     xmax=xmin
     ymin=np.imag(L[0][0])
@@ -88,18 +129,22 @@ def grid_exterior(L,m=100,D=1.5):
         ymin = np.min([ymin,y1])
         ymax = np.max([ymax,y2])
 
+    # Output array radius
     r = D/2*np.max([xmax-xmin,ymax-ymin])
     
+    # Output array bounds
     xleft  = (xmin+xmax)/2 - r
     xright = (xmin+xmax)/2 + r
     yleft  = (ymin+ymax)/2 - r
     yright = (ymin+ymax)/2 + r
     
+    # Create array
     X = np.arange(xleft,xright,(xright-xleft)/m,dtype=np.float64)
     Y = np.arange(yleft,yright,(yright-yleft)/m,dtype=np.float64)
     XX,YY = np.meshgrid(X,Y)
     G = (XX+1j*YY).flatten()
     
+    # Excise points
     for A in L:
         G = np.trim_zeros(zipper_routines.gridext(G,A[:-1],A[-1]))
         
@@ -188,35 +233,11 @@ class Conformal:
         documentation on the input of this initialization method.
         """
 
-#        self._infinity = np.complex(2**128,0)
-        self._interior_point = None
 
         B = load_data(data)
-        # Input data parsing: either a filename string or a numpy array
-#        if type(data)==str:
-#            try:
-#                A      = np.loadtxt(data)
-#                if np.isrealobj(A) and len(A.shape)==2 and A.shape[1]==2:
-#                    B      = A[:,0] +1j*A[:,1]
-#                elif np.iscomplexobj(data) and len(data.shape)==1:
-#                    B      = A
-#                else:
-#                    raise IOError("Data file must contain a 1-d complex array"\
-#                                      +" or an array of real pairs.")
-#            except:
-#                raise IOError("Please enter a valid file name.")
-#        elif type(data==np.ndarray):
-#            if np.isrealobj(data) and len(data.shape)==2 and data.shape[1]==2:
-#                B      = data[:,0] +1j*data[:,1]
-#            elif np.iscomplexobj(data) and len(data.shape)==1:
-#                B      = data
-#            else:
-#                raise IOError("Input must be a 1-d complex array"\
-#                              +" or an array of real pairs.")
-#        else:
-#            raise IOError("Input must be a valid file name or Numpy array.")
 
         # Interior point parsing
+        self._interior_point = None
         if interior_point=="from_data":
             self._interior_point  = B[-1]
             self._polygon_raw = B[:-1]
@@ -249,16 +270,6 @@ class Conformal:
 
             self._map_parameters       = (params1,ABC1)
             self._polygon_preimage_raw = preimage1
-
-
-        # Obtain conformal map parameters and polygon preimages
-#        params1,ABC1,preimage1 = zipper_routines.zipper(self._polygon,self._interior_point)
-#        params2,ABC2,preimage2 = zipper_routines.zipper(self._polygon[::-1],self._infinity)
-#        self._map_parameters = ((params1,ABC1),(params2,ABC2))
-#        self._polygon_preimage = (preimage1, preimage2)
-#        self._map_parameters       = (params1,ABC1)
-#        self._polygon_preimage     = preimage1
-#        self._polygon_preimage_raw = preimage1[pindex-1]
 
         # Set normalization
         self.set_normalization(normalization)
@@ -488,7 +499,7 @@ class Conformal:
         - ''refined'' - Boolean flag, default is False. If False, returns
                          the input Numpy array defining the region
                          supplied by the user;
-                        if False, returns a Numpy array of the polygon
+                        if True, returns a Numpy array of the polygon
                          with interpolating points as added by the
                          preprocessor.
 
@@ -514,6 +525,14 @@ class Conformal:
         computed by the inverse map. These points all lie on the unit
         disk.
 
+        INPUT:
+
+        - ''refined'' - Boolean flag, default is False. If False, returns
+                         the the computed preimage of the input data;
+                        if True, returns the computed preimage of the
+                         input data along with the added intorpolating
+                         points
+
         OUTPUT:
 
         A 1d complex Numpy array of points.
@@ -536,7 +555,7 @@ class Conformal:
             return self._polygon_preimage_raw
 
         
-    def grid(self, point_density=50): #, exterior=False):
+    def grid(self, point_density=50):
         """
         Returns a 1d complex Numpy array of points evenly spaced in the
         interior or exterior of the polygon.
@@ -572,9 +591,6 @@ class Conformal:
         if point_density < 1:
             raise ValueError("point_density must be an integer >= 1.")
 
-#        if exterior_map:
-#            Z = zipper_routines.imagegr(self._polygon[::-1],self._infinity,point_density)
-#        else:
         Z = zipper_routines.imagegr(self._polygon,self._interior_point,point_density)
         return np.trim_zeros(Z)
 
@@ -619,7 +635,6 @@ class Conformal:
             Traceback (most recent call last):
             ...
             ValueError: Number of sublevels must be an integer >= 1.
-
         """
         
         if generations < 2:
@@ -630,26 +645,43 @@ class Conformal:
         Z = np.trim_zeros(zipper_routines.cgrids(generations,sublevels))
         Z = zipper_routines.corders(Z,generations,sublevels)
         
-#        if exterior_map:
-#            return 1./np.trim_zeros(Z)
-#        else:
         return np.trim_zeros(Z)
 
 # Not implemented yet
-#    def welding(self):
-#        D = self.polygon_preimage()
-#        E1,E2 = np.log(D[0]).imag,np.log(D[1]).imag
-#        E1 = E1 + (E1<0)*2*np.pi
-#        E2 = E2 + (E2<0)*2*np.pi
-#        E = np.array((E1,E2))
-#        return E
+    def welding(self):
+        return NotImplementedError("Weldings not yet implemented.")
 
     
-######################################
+###############################################################################
 
 class ConformalChain:
+    """
+    Class representing a chain of Conformal maps that map the exterior
+     of n simply connected bounded regions in the complex plane to the
+     exterior of n circles. 
+    """
 
     def _roundness_(self,A):
+        """
+        Helper function measuring how circular a bounded simply connected
+         data-defined region is. This is given by rmax/rmin, where rmax
+         is the maximum Euclidean distance between the region's vertices
+         and the supplied interion point, and rmin the minumum such
+         distance.
+
+        INPUTS:
+
+        - ''A'' - 1-D compled Numpy array defining the region to be
+                   tested; the interior point must be the last element of
+                   the array.
+
+        OUTPUT:
+
+        A nonnegative Numpy float.
+
+        EXAMPLES::
+
+        """
 
         c1 = np.min(np.abs(A[:-1]-A[-1]))
         c2 = np.max(np.abs(A[:-1]-A[-1]))
@@ -657,15 +689,51 @@ class ConformalChain:
         return c2/c1
 
 
-    def __init__(self, data, N=200, preprocessor=True):
+    def __init__(self, data, preprocessor=True, N=200, tolerance=10e-2,\
+                 map_limit=20):
+        """
+        Initialises the ConformalChain class. Data is stored as a chain of
+         Conformal class object that iteratively map the exterior of one
+         of the supplied regions to the interior of the unit disk.
+
+        INPUTS:
+
+        - ''data'' - A nonempty list of 1-D complex numpy array defining
+                      the regions whose exterior is to be mapped. The last
+                      point of each array must be a point on the interior
+                      of said region, and the other points of that array
+                      must wrap clockwise around that point.
+
+        - ''preprocessor'' - Boolean flag, default on. Reorders the arrays
+                              for increased numerical stability, and adds
+                              interpolating points for increased precision.
+
+        - ''N''            - Positive integer, default 200. The preprocessor
+                              will attempt to add points up to this count
+                              if there are less than that in a region.
+
+        - ''tolerance''    - Positive real, default 0.01. The tolerance bound
+                              for which, once all transformed regions are
+                              this circular or more, iteration of conformal
+                              maps halts
+
+        - ''map_limit''    - Positive integer, default 20. The maximum number
+                              of iterations of conformal maps.
+
+        EXAMPLES:: 
+
+        """
         
+        # Set infinity to be a very larger number
         self._infinity = np.complex(2**300,0)
 
+        # Load data
         self._input_data_raw = []
         for d in data:
             self._input_data_raw.append(load_data(d))
 
-        # Format data using zipper_routines.polygon()
+        # If preprocessor is invoked, format data using
+        #  zipper_routines.polygon()
         if preprocessor:
             self._preprocessor = True
 
@@ -679,40 +747,46 @@ class ConformalChain:
                 self._input_data_raw_indices.append(pindex-1)
         else:
             self._preprocessor = False
-#            self._input_data = self._input_data_raw
 
+        # Store number of regions, initialize other parameters
         self._num_regions = len(self._input_data_raw)
-
         self._conformal_maps = []
         self._normalizations = []
+        self._map_order = []
 
+        # Decide which map to compute first
         R = [self._roundness_(d) for d in self.input_data(refined=True)]
-#        print(R)
         m = max(R)
         j = R.index(m)
-#        print(j)
 
-        self._map_order = []
-#        j = 0
+        # Obtain copy of input data to be iteratively transformed
         if self._preprocessor:
             self._input_data_preimage = deepcopy(self._input_data)
         else:
             self._input_data_preimage = deepcopy(self._input_data_raw)
 
-#        for j in range(self._num_regions):
-        while m-1>=np.float64(1e-2) and len(self._map_order)<=20:
+        # Iterate conformal maps until all transformed regions are
+        #  sufficiently circular
+        while m-1>=np.float64(tolerance) \
+              and len(self._map_order)<=map_limit:
+            
+            # Compute conformal map mapping from exterior of region j
+            #  to interior of disk
             C = Conformal(self._input_data_preimage[j][:-1],\
                           interior_point=np.complex(2**300,0),\
                           preprocessor=False,normalization=False)
             self._conformal_maps.append(C)
 
+            # Compute normalization so that conformal map will map the
+            #  exterior of the region to the exterior of disk, and the 
+            #  map will look like the identity at infinity
             S0 = np.array([1e6,-1e6,1j*1e6,-1j*1e6],dtype=np.complex128)
             S1 = 1/C.inverse_map(S0)
             c0 = np.sum(S1)/4
             c1 = np.sum(S1/S0)/4
-#            print(c0,c1)
             self._normalizations.append((c0,c1))
 
+            # Transform all boundary data according to this map
             for k in range(self._num_regions):
                 if k==j:
                     d = np.append(1/C.polygon_preimage(),np.complex(0,0))
@@ -720,22 +794,38 @@ class ConformalChain:
                     d = 1/C.inverse_map(self._input_data_preimage[k])
                 d = (d - c0)/c1
                 self._input_data_preimage[k] = d
-#                self._transformed_data_raw[k] = d[C._input_data_raw_indices[j]]
 
+            # Store which region's exterior was being mapped
             self._map_order.append(j)
 
+            # Compute next region's whose exterior is to be mapped
             R = [self._roundness_(d) for d in self.input_data_preimage(refined=True)]
-#            print(R)
             m = max(R)
             j = R.index(m)
-#            print(j)
-#            j = (j+1)%4
 
+        # After all is done, store total number of maps
         self._num_maps = len(self._conformal_maps)
 
 
     def inverse_map(self,data):
+        """
+        Map points from the exterior of the defining regions to the exterior
+         of the computed circles.
+
+        INPUT:
+
+         - ''data'' - 1-D complex Numpy array of data to be mapped.
+
+        OUTPUT:
+
+         A 1-D complex Numpy array of data.
+         
+        EXAMPLES::
+
+        """
         
+        # Iteratively map data using the normalized inverse maps of the
+        #  computed Conformal objects
         d = data
         for j in range(self._num_maps):
             d = self._conformal_maps[j].inverse_map(d)
@@ -744,7 +834,23 @@ class ConformalChain:
         return d
 
     def forward_map(self,data):
-        
+        """
+        Map Points from the exterior of the computed circles to the exterior
+         of the defining regions.
+
+        INPUT:
+
+         - ''data'' - 1-D complex Numpy array of data to be mapped.
+
+        OUTPUT:
+
+         A 1-D complex Numpy array of data.
+         
+        EXAMPLES::
+
+        """
+        # Iteratively map data using the normalized forward maps of the
+        #  computed Conformal objects
         d = data
         for j in range(self._num_maps)[::-1]:
             d = 1/(d*self._normalizations[j][1] + self._normalizations[j][0])
@@ -753,14 +859,48 @@ class ConformalChain:
         return d
 
     def input_data(self,refined=False):
+        """
+        Returns the boundary points of the defining regions.
+
+        INPUT:
+
+         - ''refined'' - Boolean flag, default False. If False, returns the
+                          original unpreprocessed input data, including the
+                          interior point at the end of each array.
+                         If True, returns the preprocessed boundary data.
+
+        OUTPUT:
         
+         A list of 1-D complex Numpy arrays.
+
+        EXAMPLES::
+
+        """        
         if refined and self._preprocessor:
             return self._input_data
         else:
             return self._input_data_raw
 
     def input_data_preimage(self,refined=False):
+        """
+        Returns the preimages of the regions' boundary points.
 
+        INPUT:
+
+         - ''refined'' - Boolean flag, default False. If False, returns the
+                          preimages of the unpreprocessed boundary data,
+                          including the interior point at the end of each
+                          array.
+                         If True, returns the preimages of the preprocessed
+                          boundary data.
+
+        OUTPUT:
+        
+         A list of 1-D complex Numpy arrays.
+
+        EXAMPLES::
+
+        """
         if refined or not self._preprocessor:
             return self._input_data_preimage
         else:
@@ -770,3 +910,74 @@ class ConformalChain:
                 I = self._input_data_raw_indices[j]
                 L[j] = np.append(P[I],P[-1])
             return L
+
+    def num_maps(self):
+        """
+        Returns the number of individual maps computed in the
+         creation of the ConformalChain object.
+
+        OUTPUT:
+
+         Positive integer.
+
+        EXAMPLES::
+
+        """
+        return self._num_maps
+
+    def num_regions(self):
+        """
+        Returns the number of regions whose exterior map the
+         ConformalChain object computes.
+
+        OUTPUT:
+
+         Positive integer.
+
+        EXAMPLES::
+
+        """
+        return self._num_regions
+
+    def map_order(self):
+        """
+        Returns a list of indices indicating which conformal
+         maps are computed at each step.
+
+        OUTPUT:
+
+         List of integers indexing the supplied regions.
+
+        EXAMPLES::
+
+        """
+        return self._map_order
+
+    def normalizations(self):
+        """
+        Returns the normalizations of each conformal map.
+
+        OUTPUT:
+
+         List of pairs of Numpy complex points parameterizing
+          each normalization.
+
+        EXAMPLES::
+
+        """
+        return self._normalizations
+
+    def conformal_maps(self):
+        """
+        Returns the Conformal class objects used to compute each
+         conformal map.
+
+        OUTPUT:
+
+         List of Conformal class objects.
+
+        EXAMPLES::
+
+        """
+        return self._conformal_maps
+
