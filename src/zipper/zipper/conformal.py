@@ -228,19 +228,37 @@ class Conformal:
             except:
                 raise IOError("Invalid interior point.")
 
-        # Format polygon using zipper_routines.polygon()
+        # Format polygon using zipper_routines.polygon();
+        # Obtain conformal map parameters and polygon preimages 
         if preprocessor:
-            B,njs    = zipper_routines.polygon(self._polygon_raw, self._interior_point, N)
-            self._polygon  = B[:njs]
-        else: self._polygon = self._polygon_raw
+            B,pindex,njs  = zipper_routines.polygon(self._polygon_raw,\
+                                                    self._interior_point, N)
+            self._polygon = B[:njs]
+            self._preprocessor = True
+
+            params1,ABC1,preimage1 = zipper_routines.zipper(self._polygon,\
+                                                            self._interior_point)
+            self._map_parameters       = (params1,ABC1)
+            self._polygon_preimage     = preimage1
+            self._polygon_preimage_raw = preimage1[pindex-1]
+        else:
+            self._preprocessor = False
+
+            params1,ABC1,preimage1 = zipper_routines.zipper(self._polygon_raw,\
+                                                            self._interior_point)
+
+            self._map_parameters       = (params1,ABC1)
+            self._polygon_preimage_raw = preimage1
+
 
         # Obtain conformal map parameters and polygon preimages
-        params1,ABC1,preimage1 = zipper_routines.zipper(self._polygon,self._interior_point)
+#        params1,ABC1,preimage1 = zipper_routines.zipper(self._polygon,self._interior_point)
 #        params2,ABC2,preimage2 = zipper_routines.zipper(self._polygon[::-1],self._infinity)
 #        self._map_parameters = ((params1,ABC1),(params2,ABC2))
 #        self._polygon_preimage = (preimage1, preimage2)
-        self._map_parameters = (params1,ABC1)
-        self._polygon_preimage = preimage1
+#        self._map_parameters       = (params1,ABC1)
+#        self._polygon_preimage     = preimage1
+#        self._polygon_preimage_raw = preimage1[pindex-1]
 
         # Set normalization
         self.set_normalization(normalization)
@@ -336,13 +354,13 @@ class Conformal:
         if state:
             # Get derivative of unnormalized conformal map at origin
             a1 = self._get_forward_map_derivative_at_origin()
-            # Set normalization to the -argument of a1 
+            # Set normalization to the conjugate of a1/|a1| 
             self._normalization = np.conj(a1)/np.abs(a1)
         else:
             # Get the preimage of the first point of self._polygon
-            b = self._inverse_map_unnormalized(self._polygon_raw[:1])[0]
+            b = self._polygon_preimage_raw[0]
             # Set normalization to the conjugate of b
-            self._normalization = b
+            self._normalization = np.conj(b)
 
 #    def _get_boundary_distance(self):
 #        return np.min(np.abs(self.polygon(refined=True) - self.interior_point()))        
@@ -485,12 +503,12 @@ class Conformal:
             sage: C.polygon()
             array([ 1.+0.j,  0.+1.j, -1.+0.j, -0.-1.j])
         """
-        if refined:
+        if refined and self._preprocessor:
             return self._polygon
         else:
             return self._polygon_raw
         
-    def polygon_preimage(self):
+    def polygon_preimage(self,refined=False):
         """
         Returns the preimage of the (preprocessed) polygon data as
         computed by the inverse map. These points all lie on the unit
@@ -512,7 +530,11 @@ class Conformal:
             sage: np.min(np.abs(D))
             0.99999999999999489
         """
-        return self._polygon_preimage
+        if refined and self._preprocessor:
+            return self._polygon_preimage
+        else:
+            return self._polygon_preimage_raw
+
         
     def grid(self, point_density=50): #, exterior=False):
         """
@@ -644,30 +666,42 @@ class ConformalChain:
             self._input_data_raw.append(load_data(d))
 
         # Format data using zipper_routines.polygon()
-        self._input_data = []
         if preprocessor:
+            self._preprocessor = True
+
+            self._input_data = []
+            self._input_data_raw_indices = []        
             for d in self._input_data_raw:
-                B,njs    = zipper_routines.polygon(d[:-1], self._infinity, N)
+                B,pindex,njs = zipper_routines.polygon(d[:-1],\
+                                                       self._infinity,\
+                                                       N)
                 self._input_data.append(np.append(B[:njs],d[-1]))
-        else: self._input_data = self._input_data_raw
+                self._input_data_raw_indices.append(pindex-1)
+        else:
+            self._preprocessor = False
+#            self._input_data = self._input_data_raw
 
-        self._num_regions = len(self._input_data)
+        self._num_regions = len(self._input_data_raw)
 
-        self._transformed_data = deepcopy(self._input_data)
         self._conformal_maps = []
         self._normalizations = []
 
-#        R = [self._roundness_(d) for d in self._transformed_data]
+        R = [self._roundness_(d) for d in self.input_data(refined=True)]
 #        print(R)
-#        m = max(R)
-#        j = R.index(m)
+        m = max(R)
+        j = R.index(m)
 #        print(j)
 
+        self._map_order = []
 #        j = 0
-        for j in range(self._num_regions):
-#        while m-1 >= np.float64(1e-2):
-#        for _ in range(1):
-            C = Conformal(self._transformed_data[j][:-1],\
+        if self._preprocessor:
+            self._input_data_preimage = deepcopy(self._input_data)
+        else:
+            self._input_data_preimage = deepcopy(self._input_data_raw)
+
+#        for j in range(self._num_regions):
+        while m-1>=np.float64(1e-2) and len(self._map_order)<=20:
+            C = Conformal(self._input_data_preimage[j][:-1],\
                           interior_point=np.complex(2**300,0),\
                           preprocessor=False,normalization=False)
             self._conformal_maps.append(C)
@@ -683,14 +717,18 @@ class ConformalChain:
                 if k==j:
                     d = np.append(1/C.polygon_preimage(),np.complex(0,0))
                 else:
-                    d = 1/C.inverse_map(self._transformed_data[k])
+                    d = 1/C.inverse_map(self._input_data_preimage[k])
                 d = (d - c0)/c1
-                self._transformed_data[k] = d
+                self._input_data_preimage[k] = d
+#                self._transformed_data_raw[k] = d[C._input_data_raw_indices[j]]
 
-#            R = [self._roundness_(d) for d in self._transformed_data]
+            self._map_order.append(j)
+
+            R = [self._roundness_(d) for d in self.input_data_preimage(refined=True)]
 #            print(R)
-#            m = max(R)
-#            j = R.index(m)
+            m = max(R)
+            j = R.index(m)
+#            print(j)
 #            j = (j+1)%4
 
         self._num_maps = len(self._conformal_maps)
@@ -713,3 +751,22 @@ class ConformalChain:
             d = self._conformal_maps[j].forward_map(d)
 
         return d
+
+    def input_data(self,refined=False):
+        
+        if refined and self._preprocessor:
+            return self._input_data
+        else:
+            return self._input_data_raw
+
+    def input_data_preimage(self,refined=False):
+
+        if refined or not self._preprocessor:
+            return self._input_data_preimage
+        else:
+            L = [0]*self._num_regions
+            for j in range(self._num_regions):
+                P = self._input_data_preimage[j]
+                I = self._input_data_raw_indices[j]
+                L[j] = np.append(P[I],P[-1])
+            return L
